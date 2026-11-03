@@ -96,6 +96,22 @@ def drain_collecting(track, times):
 
 
 class IdleStallTestCase(unittest.TestCase):
+    def test_audio_end_event_reaches_player_only_when_last_packet_is_consumed(self):
+        player = FakePlayer(speaking=True)
+        track = make_track(player)
+        import numpy as np
+        from av import AudioFrame
+
+        audio = np.zeros((1, 320), dtype=np.int16)
+        frame = AudioFrame.from_ndarray(audio, layout='mono', format='s16')
+        frame.sample_rate = 16000
+        event = {'status': 'end', 'gesture_after': 'wave_one'}
+        track._queue.put((frame, event))
+
+        self.assertEqual(player.events, [])
+        drain(track, 1)
+        self.assertEqual(player.events, [event])
+
     def test_stalls_while_not_speaking_are_not_underruns(self):
         track = make_track(FakePlayer(speaking=False))
         records, messages = drain_collecting(track, 3)

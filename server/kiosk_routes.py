@@ -80,11 +80,39 @@ def _pick_session(sessionid=""):
 
 
 def _speak(session, text):
-    """让数字人朗读一段文本。返回是否成功。"""
+    """让数字人朗读一段文本，并支持讲稿同款的动作标签。
+
+    唤醒词、菜单固定答复原先直接送给 TTS，因此 ``[GESTURE:wave_one]``
+    会被当作普通字符，无法触发动作。这里复用讲稿解析器：标签写在文字前时
+    边说边做，写在一句末尾时则在音频真正结束后再做。
+    """
     if session is None or not text:
         return False
     try:
-        session.put_msg_txt(str(text), {})
+        from server.routes import _parse_segments, partition_gestures
+
+        segments = _parse_segments(str(text), include_gesture_timing=True)
+        requested = [gesture for _text, _slide, gesture, _timing in segments if gesture]
+        if requested:
+            avatar_id = _avatar_of(session)
+            usable, missing, available_ids = partition_gestures(avatar_id, requested)
+            if missing:
+                logger.warning(
+                    '[全息舱] 回复中的动作不可用：%s；当前形象 %s 可用：%s',
+                    '、'.join(missing), avatar_id or '未知', '、'.join(available_ids) or '无')
+                segments = [
+                    (seg_text, slide_id, None if gesture in missing else gesture, timing)
+                    for seg_text, slide_id, gesture, timing in segments
+                ]
+            preheat = getattr(session, 'preheat_gestures', None)
+            if usable and callable(preheat):
+                preheat(list(dict.fromkeys(usable)))
+
+        for seg_text, _slide_id, gesture, timing in segments:
+            datainfo = {}
+            if gesture:
+                datainfo['gesture_after' if timing == 'after' else 'gesture'] = gesture
+            session.put_msg_txt(seg_text, datainfo)
         return True
     except Exception:  # noqa: BLE001
         logger.exception("[全息舱] 朗读失败")

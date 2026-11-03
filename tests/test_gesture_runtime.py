@@ -199,6 +199,18 @@ class FrameSourceTestCase(unittest.TestCase):
             self.assertNotIn('self.frame_list_cycle[idx]', source)
 
 
+class GestureAfterNotificationTestCase(unittest.TestCase):
+    def test_gesture_after_starts_only_on_audio_end_notification(self):
+        avatar = BaseAvatar.__new__(BaseAvatar)
+        requested = []
+        avatar.request_gesture = requested.append
+
+        avatar.notify({'status': 'start', 'gesture_after': 'wave_one'})
+        self.assertEqual(requested, [])
+        avatar.notify({'status': 'end', 'gesture_after': 'wave_one'})
+        self.assertEqual(requested, ['wave_one'])
+
+
 class SwitchIndexTestCase(unittest.TestCase):
     """3.2 切换后从手势第 0 帧开始，且 length 随帧源长度更新。"""
 

@@ -74,6 +74,21 @@ class FakeSession:
         self.calls.append((name, repeat))
 
 
+class SpeechSession(FakeSession):
+    """覆盖唤醒回复的最小朗读会话替身。"""
+
+    def __init__(self, avatar_id="musetalk_ke"):
+        super().__init__(avatar_id)
+        self.delivered = []
+        self.preheated = []
+
+    def put_msg_txt(self, text, datainfo):
+        self.delivered.append((text, dict(datainfo)))
+
+    def preheat_gestures(self, names):
+        self.preheated.append(list(names))
+
+
 def _routes():
     from server import kiosk_routes
 
@@ -85,6 +100,20 @@ def test_play_gesture_requests_action():
     ok = _routes()._play_gesture(session, {"avatar": "musetalk_ke", "gesture": "wave_one"})
     assert ok is True
     assert session.calls == [("wave_one", False)]
+
+
+def test_wake_reply_supports_trailing_gesture(monkeypatch):
+    """唤醒回复与讲稿一样支持“说完后再做”的句末动作标签。"""
+    from server import routes
+
+    monkeypatch.setattr(routes.gesture_utils, "list_gestures",
+                        lambda _avatar: [{"id": "wave_one"}])
+    session = SpeechSession("musetalk_ke")
+    assert _routes()._speak(session, "您好，欢迎来到课堂[GESTURE:wave_one]") is True
+    assert session.delivered == [
+        ("您好，欢迎来到课堂", {"gesture_after": "wave_one"})
+    ]
+    assert session.preheated == [["wave_one"]]
 
 
 def test_play_gesture_repeat_flag_passed():

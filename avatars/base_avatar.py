@@ -326,6 +326,14 @@ class BaseAvatar:
     def notify(self, eventpoint:dict):
         if eventpoint and eventpoint.get('status'):
             logger.info("notify:%s", eventpoint)
+        # ``PlayerStreamTrack`` 只会在音轨真正取走该 RTP 包时调用 notify。
+        # 句末动作必须在这里触发，而不能在渲染线程“把音频塞入发送队列”时触发：
+        # 后者可能还积压数秒语音，动作底图会抢在口型结束前切换。
+        if (eventpoint and eventpoint.get('status') == 'end'
+                and eventpoint.get('gesture_after')):
+            gesture_name = eventpoint['gesture_after']
+            logger.info("[手势标签] WebRTC 音频实际结束后触发手势 → %s", gesture_name)
+            self.request_gesture(gesture_name)
 
     def start_recording(self):
         if self.recording:
@@ -1005,16 +1013,6 @@ class BaseAvatar:
                 logger.info(f"[手势标签] 音频播放触发手势 → {gesture_name}")
                 self.request_gesture(gesture_name)
 
-            # 句末 ``[GESTURE:id]`` 会作为 ``gesture_after`` 绑在这一段的最后
-            # 一个音频包上。先记下、不立刻切换：本轮仍须完成最后一个口型帧；待
-            # 音频包送入 WebRTC 队列后再启动动作，才能保证先说完、再做动作。
-            gesture_after_userdata = next((
-                frame.userdata for frame in audio_frames
-                if frame.userdata
-                and frame.userdata.get('status') == 'end'
-                and frame.userdata.get('gesture_after')
-            ), None)
-
             # 帧索引必须在**手势切换之后**确定，否则刚触发动作的这一帧还会按
             # 切换前的旧索引取帧（动作首帧被跳过 1 帧）。
             #
@@ -1138,11 +1136,6 @@ class BaseAvatar:
                 self.output.push_audio_frame(frame, audio_frame.userdata)
                 self.record_audio_data(frame)
 
-            if gesture_after_userdata:
-                gesture_name = gesture_after_userdata['gesture_after']
-                logger.info(f"[手势标签] 音频结束后触发手势 → {gesture_name}")
-                self.request_gesture(gesture_name)
-                
             # 帧率控制：基于固定时钟，确保每帧严格 40ms 间隔
             # 不依赖处理耗时，避免帧间隔抖动导致画面卡顿
             now = time.perf_counter()
