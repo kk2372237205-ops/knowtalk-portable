@@ -70,7 +70,9 @@
     if (!response.ok || (Object.hasOwn(payload, "code") && payload.code !== 0)) {
       throw new Error(payload.msg || "请求失败（HTTP " + response.status + "）");
     }
-    return payload.data;
+    // 大多数管理接口使用 {code, data} 信封；/offer（WebRTC 信令）和
+    // 声音克隆代理则按协议直接返回原始 JSON。不能把后者错误地解成 undefined。
+    return Object.hasOwn(payload, "data") ? payload.data : payload;
   }
 
   async function loadSession() {
