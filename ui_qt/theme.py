@@ -42,6 +42,11 @@ QLabel#cardTitle { font-size: 15px; font-weight: 600; color: @ink; }
 QLabel#muted { color: @muted; font-size: 12px; }
 QLabel#hint { color: @muted2; font-size: 12px; }
 QLabel#pageTitle { font-size: 20px; font-weight: 600; color: @ink; }
+QLabel#subtitle {
+    background: @card_alt; border: 1px solid @line; border-radius: 8px;
+    color: @ink; padding: 8px 14px; font-size: 14px;
+}
+QLabel#menuTip { color: @muted; font-size: 12px; padding: 2px 0; }
 
 /* ── 按钮 ───────────────────────────────────── */
 QPushButton {

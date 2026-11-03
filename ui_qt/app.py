@@ -11,13 +11,14 @@
 
 import sys
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMainWindow,
                                QScrollArea, QStackedWidget, QVBoxLayout, QWidget)
 
 from ui_qt import theme as ui_theme
 from ui_qt import widgets as w
+from ui_qt.backend import BackendController
 from ui_qt.pages import AppearancePage, BroadcastPage, IdlePage
 
 NAV_SECTIONS = {
@@ -74,6 +75,10 @@ class MainWindow(QMainWindow):
         self._pages = {}
         self._nav_buttons = {}
         self._current_key = None
+        self.backend = BackendController(self)
+        self.backend.ready.connect(self._on_backend_ready)
+        self.backend.progress.connect(self._on_backend_progress)
+        self.backend.failed.connect(self._on_backend_failed)
 
         central = QWidget()
         central.setObjectName("root")
@@ -88,6 +93,8 @@ class MainWindow(QMainWindow):
         self.apply_theme(ui_theme.current_theme_id())
         self.switch_mode("speech")
         self.show_page("broadcast")
+        # 先完成 Qt 第一帧绘制，再让后台加载数字人模型；模型冷启动不能把窗口拖黑。
+        QTimer.singleShot(0, self.backend.start)
 
     # ── 侧边栏 ────────────────────────────────────────────────────
     def _build_side(self):
@@ -183,6 +190,22 @@ class MainWindow(QMainWindow):
                     hook()
                 except Exception:  # noqa: BLE001
                     pass
+        self.backend.stop()
+
+    def _on_backend_progress(self, text):
+        self.foot_label.setText(text or "主服务启动中")
+
+    def _on_backend_ready(self):
+        self.foot_label.setText("主服务就绪")
+        page = self._pages.get("broadcast")
+        if page is not None:
+            page.reload_avatars()
+
+    def _on_backend_failed(self, text):
+        self.foot_label.setText("主服务启动失败")
+        page = self._pages.get("broadcast")
+        if page is not None:
+            page.show_backend_error(text)
 
     # ── 主题 ──────────────────────────────────────────────────────
     def apply_theme(self, theme_id):

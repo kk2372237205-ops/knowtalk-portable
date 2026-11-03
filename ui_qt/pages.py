@@ -9,8 +9,8 @@ import os
 import threading
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtWidgets import (QComboBox, QHBoxLayout, QLabel, QScrollArea, QSlider,
-                               QSpinBox, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QComboBox, QDialog, QHBoxLayout, QLabel, QScrollArea,
+                               QSlider, QSpinBox, QVBoxLayout, QWidget)
 
 from ui_qt import theme as ui_theme
 from ui_qt import widgets as w
@@ -60,39 +60,100 @@ class BasePage(QWidget):
         outer.addLayout(self.content, 1)
 
 
+class FullscreenBroadcast(QDialog):
+    """Qt 全屏演示窗口：只放数字人与固定的字幕、菜单，不复制主窗口布局。"""
+
+    def __init__(self, page):
+        super().__init__(page.window())
+        self.page = page
+        self.setWindowTitle("知课 KnowTalking · 全屏演示")
+        self.setWindowFlag(Qt.FramelessWindowHint, True)
+        self.setModal(False)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(18, 14, 18, 14)
+        root.setSpacing(8)
+        controls = QHBoxLayout()
+        controls.addStretch(1)
+        controls.addWidget(w.button("退出全屏", self.close, "ghost"))
+        root.addLayout(controls)
+
+        self.stage = w.VideoStage()
+        self.stage.setMinimumSize(480, 540)
+        root.addWidget(self.stage, 1)
+        self.subtitle = QLabel("")
+        self.subtitle.setObjectName("subtitle")
+        self.subtitle.setAlignment(Qt.AlignCenter)
+        self.subtitle.setWordWrap(True)
+        self.subtitle.hide()
+        root.addWidget(self.subtitle)
+
+        self.menu_host = QWidget()
+        self.menu_layout = QHBoxLayout(self.menu_host)
+        self.menu_layout.setContentsMargins(0, 0, 0, 0)
+        self.menu_layout.setSpacing(8)
+        self.menu_layout.setAlignment(Qt.AlignCenter)
+        root.addWidget(self.menu_host)
+        self.tip = QLabel("")
+        self.tip.setObjectName("menuTip")
+        self.tip.setAlignment(Qt.AlignCenter)
+        root.addWidget(self.tip)
+        self.sync_from_page()
+
+    def sync_from_page(self):
+        self.subtitle.setText(self.page.subtitle.text())
+        self.subtitle.setVisible(not self.page.subtitle.text().isspace() and bool(self.page.subtitle.text()))
+        self.tip.setText(self.page.menu_tip.text())
+        self.page._build_menu_buttons(self.menu_layout)
+
+    def closeEvent(self, event):  # noqa: N802
+        self.page._fullscreen = None
+        event.accept()
+
+
 class BroadcastPage(BasePage):
     TITLE = "开播"
-    DESC = "选形象，连上数字人，画面会实时出现在右侧。"
+    DESC = "选形象后建立数字人连接；Qt 直接绘制视频帧，菜单和字幕布局固定。"
 
     avatarsLoaded = Signal(object, str)
+    menusLoaded = Signal(object)
     statusChanged = Signal(str, bool)
+    captionChanged = Signal(str)
+    menuTipChanged = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._bridge = None
         self._connected = False
+        self._sessionid = ""
+        self._menus = []
+        self._fullscreen = None
 
         left = QVBoxLayout()
         left.setSpacing(12)
-        card = w.Card("形象", "未连接时可以随时更换；连接后需要重新开播才生效。")
+        card = w.Card("数字人连接", "未连接时可以更换形象；连接后需要重新开播才生效。")
         self.avatar_combo = QComboBox()
         self.avatar_combo.setMinimumWidth(240)
         self.avatar_combo.addItem("正在读取形象列表…", "")
         card.body.addWidget(self.avatar_combo)
-        self.voice_label = QLabel("音色在「形象与设置 → 语音与音频」里改")
+        self.voice_label = QLabel("音色可在「形象与设置」页调整")
         self.voice_label.setObjectName("muted")
         card.body.addWidget(self.voice_label)
         left.addWidget(card)
 
-        action = w.Card("开播", "数字人单独模式：画面只显示形象，课件不联动。")
+        action = w.Card("开播", "菜单固定在画面下方；回答以字幕形式显示在菜单上方。")
         row = QHBoxLayout()
         row.setSpacing(10)
         self.connect_btn = w.button("开始连接", self._toggle, "primary")
         row.addWidget(self.connect_btn)
-        row.addWidget(w.button("全屏演示", None, "ghost"))
+        row.addWidget(w.button("打断朗读", self._interrupt, "ghost"))
         row.addStretch(1)
         action.body.addLayout(row)
-        self.state = QLabel("未连接")
+        full_row = QHBoxLayout()
+        full_row.addWidget(w.button("全屏演示", self._show_fullscreen, "ghost"))
+        full_row.addStretch(1)
+        action.body.addLayout(full_row)
+        self.state = QLabel("等待主服务…")
         self.state.setObjectName("muted")
         action.body.addWidget(self.state)
         left.addWidget(action)
@@ -103,34 +164,67 @@ class BroadcastPage(BasePage):
         holder.setFixedWidth(380)
         self.content.addWidget(holder)
 
+        display = QWidget()
+        display_layout = QVBoxLayout(display)
+        display_layout.setContentsMargins(0, 0, 0, 0)
+        display_layout.setSpacing(8)
         self.stage = w.VideoStage()
-        self.content.addWidget(self.stage, 1)
+        display_layout.addWidget(self.stage, 1)
+        self.subtitle = QLabel("")
+        self.subtitle.setObjectName("subtitle")
+        self.subtitle.setAlignment(Qt.AlignCenter)
+        self.subtitle.setWordWrap(True)
+        self.subtitle.hide()
+        display_layout.addWidget(self.subtitle)
+        self.menu_host = QWidget()
+        self.menu_layout = QHBoxLayout(self.menu_host)
+        self.menu_layout.setContentsMargins(0, 0, 0, 0)
+        self.menu_layout.setSpacing(8)
+        self.menu_layout.setAlignment(Qt.AlignCenter)
+        display_layout.addWidget(self.menu_host)
+        self.menu_tip = QLabel("")
+        self.menu_tip.setObjectName("menuTip")
+        self.menu_tip.setAlignment(Qt.AlignCenter)
+        display_layout.addWidget(self.menu_tip)
+        self.content.addWidget(display, 1)
 
-        # 帧从 aiortc 线程来，只存最新一张；这里按 30fps 去取，取不到就跳过。
-        # 逐帧发信号会把 UI 线程的队列堆起来，越跑越慢。
+        # 帧从 aiortc 线程来，只存最新一张；Qt 主线程按显示节奏取帧，不积压。
         self._frame_timer = QTimer(self)
         self._frame_timer.timeout.connect(self._pull_frame)
+        self._menu_timer = QTimer(self)
+        self._menu_timer.setInterval(15000)
+        self._menu_timer.timeout.connect(self._load_menus)
+        self._menu_timer.start()
 
         self.avatarsLoaded.connect(self._fill_avatars)
+        self.menusLoaded.connect(self._fill_menus)
         self.statusChanged.connect(self._set_status)
+        self.captionChanged.connect(self._set_caption)
+        self.menuTipChanged.connect(self._set_menu_tip)
+        self._load_avatars()
+        self._load_menus()
+
+    # ── 后端数据 ──────────────────────────────────────────────────
+    def reload_avatars(self):
+        """主服务就绪后由主窗口调用，刷新启动期间读失败的形象列表。"""
         self._load_avatars()
 
-    # ── 形象列表 ──────────────────────────────────────────────────
+    def show_backend_error(self, text):
+        self.state.setText(text or "主服务启动失败")
+
     def _load_avatars(self):
         def work():
             items, err = [], ""
             try:
                 resp = local_session().get(BASE + "/api/avatars", timeout=6)
                 payload = resp.json() or {}
-                # 401 时 data 是 {"login": ...}，直接拿去当列表迭代会把 dict 的 key
-                # 当成形象 id。状态和形状都要先判。
                 if resp.status_code != 200 or payload.get("code") not in (0, None):
                     err = payload.get("msg") or "接口返回 %d" % resp.status_code
                 else:
                     data = payload.get("data")
                     items = data if isinstance(data, list) else []
             except Exception:  # noqa: BLE001
-                err = "读不到形象列表：主服务可能还没启动"
+                err = "读不到形象列表：主服务可能仍在加载"
             self.avatarsLoaded.emit(items, err)
 
         threading.Thread(target=work, daemon=True).start()
@@ -146,17 +240,53 @@ class BroadcastPage(BasePage):
             if item.get("status") != "ready":
                 label += "（素材不完整）"
             self.avatar_combo.addItem(label, item.get("id"))
-        self.state.setText("未连接")
+        if not self._connected:
+            self.state.setText("未连接")
 
-    # ── 连接 ──────────────────────────────────────────────────────
+    def _load_menus(self):
+        def work():
+            items = []
+            try:
+                resp = local_session().get(BASE + "/api/kiosk/menus/enabled", timeout=6)
+                payload = resp.json() or {}
+                items = (payload.get("data") or {}).get("items", []) or []
+            except Exception:  # noqa: BLE001
+                items = []
+            self.menusLoaded.emit(items)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _fill_menus(self, items):
+        self._menus = items
+        self._build_menu_buttons(self.menu_layout)
+        if self._fullscreen is not None:
+            self._fullscreen.sync_from_page()
+
+    def _build_menu_buttons(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        if not self._menus:
+            empty = QLabel("暂无启用菜单")
+            empty.setObjectName("muted")
+            layout.addWidget(empty)
+            return
+        for item in self._menus:
+            title = str(item.get("title") or "菜单")
+            btn = w.button(title, lambda _=False, value=item: self._activate_menu(value), "ghost")
+            btn.setEnabled(bool(self._sessionid))
+            layout.addWidget(btn)
+
+    # ── 连接与播放控制 ────────────────────────────────────────────
     def _toggle(self):
         if self._connected:
             self._teardown()
-            self.state.setText("已断开")
             return
         avatar_id = self.avatar_combo.currentData()
         if not avatar_id:
-            self.state.setText("先选一个形象")
+            self.state.setText("先等待主服务就绪并选择形象")
             return
         self._ensure_bridge()
         self.connect_btn.setEnabled(False)
@@ -164,13 +294,11 @@ class BroadcastPage(BasePage):
         self._set_avatar(avatar_id)
 
     def _set_avatar(self, avatar_id):
-        """先告诉主服务这一场用哪个形象，再建媒体通道。"""
-
         def work():
             try:
                 local_session().put(BASE + "/api/settings",
                                     json={"avatar": {"id": avatar_id}}, timeout=8)
-            except Exception:  # noqa: BLE001 - 设置失败不拦连接，主服务会沿用上一次的形象
+            except Exception:  # noqa: BLE001 - 设置失败时服务端沿用原形象
                 pass
             self._bridge.open()
 
@@ -188,19 +316,23 @@ class BroadcastPage(BasePage):
         self.statusChanged.emit(text, text == "已连接")
 
     def _on_session(self, sessionid):
-        self._connected = bool(sessionid)
-        if sessionid:
+        self._sessionid = sessionid or ""
+        self._connected = bool(self._sessionid)
+        if self._connected:
             self._frame_timer.start(33)
-            self._retitle("断开", primary=False)
+            self._retitle("断开连接", primary=False)
         else:
             self._frame_timer.stop()
             self._retitle("开始连接", primary=True)
+            self._set_caption("")
+        self._build_menu_buttons(self.menu_layout)
+        if self._fullscreen is not None:
+            self._fullscreen.sync_from_page()
 
     def _retitle(self, text, primary):
         self.connect_btn.setText(text)
         self.connect_btn.setEnabled(True)
         self.connect_btn.setProperty("primary", "true" if primary else "false")
-        # QSS 的属性选择器只在 polish 之后重新求值，改完必须刷一次
         self.connect_btn.style().unpolish(self.connect_btn)
         self.connect_btn.style().polish(self.connect_btn)
         if primary:
@@ -217,16 +349,95 @@ class BroadcastPage(BasePage):
         frame = self._bridge.take_frame()
         if frame is not None:
             self.stage.set_frame(frame, rgb=True)
+            if self._fullscreen is not None:
+                self._fullscreen.stage.set_frame(frame, rgb=True)
 
     def _teardown(self):
+        sid = self._sessionid
         self._frame_timer.stop()
+        self.state.setText("正在断开…")
         if self._bridge is not None:
+            try:
+                self._bridge.player.clear_pending()
+            except Exception:  # noqa: BLE001
+                pass
             self._bridge.close()
         self._connected = False
+        self._sessionid = ""
         self._retitle("开始连接", primary=True)
+        self._set_menu_tip("")
+        if sid:
+            threading.Thread(target=self._interrupt_request, args=(sid,), daemon=True).start()
+
+    def _interrupt(self):
+        if not self._sessionid:
+            self.state.setText("请先连接数字人")
+            return
+        self.state.setText("正在打断朗读…")
+        threading.Thread(target=self._interrupt_request, args=(self._sessionid,), daemon=True).start()
+
+    def _interrupt_request(self, sessionid):
+        try:
+            response = local_session().post(BASE + "/interrupt_talk",
+                                            json={"sessionid": sessionid}, timeout=5)
+            data = response.json() or {}
+            text = "已打断朗读" if data.get("code", -1) == 0 else (
+                "打断失败：%s" % (data.get("msg") or "服务未确认"))
+        except Exception as exc:  # noqa: BLE001
+            text = "打断失败：%s" % exc
+        self.statusChanged.emit(text, False)
+
+    # ── 字幕、菜单与全屏 ──────────────────────────────────────────
+    def _activate_menu(self, item):
+        if not self._sessionid:
+            self._set_menu_tip("请先连接数字人")
+            return
+        title = str(item.get("title") or "菜单")
+        self._set_menu_tip("正在介绍：%s …" % title)
+
+        def work():
+            try:
+                response = local_session().post(
+                    BASE + "/api/kiosk/menus/%s/activate" % item["id"],
+                    json={"sessionid": self._sessionid, "speak": True}, timeout=90)
+                data = response.json() or {}
+                if data.get("code", -1) != 0:
+                    self.menuTipChanged.emit("介绍失败：%s" % (data.get("msg") or "未知错误"))
+                    return
+                answer = str((data.get("data") or {}).get("answer") or "")
+                self.captionChanged.emit(answer or "已开始朗读")
+                self.menuTipChanged.emit("正在朗读：%s" % title)
+            except Exception as exc:  # noqa: BLE001
+                self.menuTipChanged.emit("请求失败：%s" % exc)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _set_caption(self, text):
+        text = str(text or "").strip()
+        self.subtitle.setText(text)
+        self.subtitle.setVisible(bool(text))
+        if self._fullscreen is not None:
+            self._fullscreen.subtitle.setText(text)
+            self._fullscreen.subtitle.setVisible(bool(text))
+
+    def _set_menu_tip(self, text):
+        self.menu_tip.setText(str(text or ""))
+        if self._fullscreen is not None:
+            self._fullscreen.tip.setText(str(text or ""))
+
+    def _show_fullscreen(self):
+        if self._fullscreen is not None:
+            self._fullscreen.raise_()
+            self._fullscreen.activateWindow()
+            return
+        self._fullscreen = FullscreenBroadcast(self)
+        self._fullscreen.showFullScreen()
 
     def shutdown(self):
-        """窗口关闭时调一次：断会话、停音频线程。"""
+        self._menu_timer.stop()
+        self._frame_timer.stop()
+        if self._fullscreen is not None:
+            self._fullscreen.close()
         if self._bridge is not None:
             self._bridge.stop()
             self._bridge = None
