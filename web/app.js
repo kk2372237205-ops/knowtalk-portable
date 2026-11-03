@@ -48,10 +48,14 @@
   }
 
   async function api(path, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
     const response = await fetch(path, {
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
       ...options,
+      credentials: "same-origin",
+      headers,
     });
     let payload = {};
     try {
@@ -350,6 +354,15 @@
       setDetail(error.message);
     }
   }
+
+  // 工作台页面只通过这一层访问连接状态与 API，避免每个页面各自维护一套 WebRTC。
+  window.KnowTalk = {
+    api,
+    getSessionId: () => state.sessionId,
+    interrupt,
+    refreshMenus: loadMenus,
+    setMenuMessage: (text) => { ui.menuMessage.textContent = String(text || ""); },
+  };
 
   ui.connect.addEventListener("click", toggleConnection);
   ui.interrupt.addEventListener("click", interrupt);

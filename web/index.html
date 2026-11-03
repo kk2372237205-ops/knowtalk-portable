@@ -18,6 +18,41 @@
       </div>
     </header>
 
+    <div class="app-layout">
+      <aside class="sidebar" aria-label="功能导航">
+        <div class="mode-switch" role="group" aria-label="使用模式">
+          <button class="mode-button is-active" type="button" data-mode="speech">演讲模式</button>
+          <button class="mode-button" type="button" data-mode="expo">展览模式</button>
+        </div>
+        <nav id="page-nav" class="page-nav">
+          <section data-mode-section="speech">
+            <p class="nav-group">上课</p>
+            <button class="nav-button is-active" data-page="broadcast" type="button">开播</button>
+            <button class="nav-button" data-page="script" type="button">讲稿</button>
+            <button class="nav-button" data-page="quiz" type="button">提问</button>
+            <button class="nav-button" data-page="course" type="button">课件</button>
+            <button class="nav-button" data-page="knowledge" type="button">知识库管理</button>
+            <button class="nav-button" data-page="background" type="button">背景设置</button>
+          </section>
+          <section data-mode-section="expo" hidden>
+            <p class="nav-group">全息舱</p>
+            <button class="nav-button" data-page="broadcast" type="button">开播</button>
+            <button class="nav-button" data-page="background" type="button">背景设置</button>
+            <button class="nav-button" data-page="wake" type="button">唤醒与打断</button>
+            <button class="nav-button" data-page="menu" type="button">菜单库</button>
+            <button class="nav-button" data-page="idle" type="button">待机与迎宾</button>
+            <button class="nav-button" data-page="qalog" type="button">问答记录</button>
+          </section>
+          <section>
+            <p class="nav-group">通用</p>
+            <button class="nav-button" data-page="studio" type="button">形象与设置</button>
+            <button class="nav-button" data-page="admin" type="button">管理后台</button>
+            <button class="nav-button" data-page="status" type="button">系统状态</button>
+          </section>
+        </nav>
+      </aside>
+      <div class="page-area">
+        <section id="broadcast-page" class="page-view">
     <section class="workspace">
       <aside class="control-panel">
         <div>
@@ -63,7 +98,12 @@
         <p id="menu-message" class="menu-message" aria-live="polite"></p>
       </section>
     </section>
+        </section>
+        <section id="management-page" class="page-view" hidden aria-live="polite"></section>
+      </div>
+    </div>
   </main>
   <script src="/app.js" defer></script>
+  <script src="/workbench.js" defer></script>
 </body>
 </html>

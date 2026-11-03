@@ -690,6 +690,11 @@ def main():
     setup_web_routes(appasync)
 
     web_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+    background_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "backgrounds")
+    # 背景图由运营上传，H5 需要展示缩略图供选择。单独挂在 /backgrounds，
+    # 不把整个 data/（包含设置和密钥）暴露为静态目录。
+    os.makedirs(background_dir, exist_ok=True)
+    appasync.router.add_static("/backgrounds", path=background_dir)
 
     async def web_home(_request):
         """网页端统一入口；鉴权中间件会在需要登录时先跳到 login.html。"""
