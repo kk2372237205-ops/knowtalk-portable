@@ -670,8 +670,8 @@ def main():
             task.cancel()
     appasync.on_shutdown.append(_on_shutdown_quiz)
 
-    # 网页版已移除（项目只保留桌面版）：不再注册根页面路由与 web/ 静态目录。
-    # 桌面版（desktop_app.py）通过 /api/*、/offer 等接口与本服务通信。
+    # 网页端与桌面端复用同一套 API 和 /offer WebRTC 信令。静态目录必须放在
+    # 所有 /api/* 路由之后注册，否则通配的根路径会把接口请求当成静态文件吞掉。
 
     # 注册 server/routes.py 中的通用 API 路由
     setup_routes(appasync)
@@ -683,6 +683,20 @@ def main():
     # 全息舱（展项）路由：唤醒词 / 菜单库 / 闲时待机 / 人体感应 / 问答记录
     from server.kiosk_routes import setup_kiosk_routes
     setup_kiosk_routes(appasync)
+
+    # 网页端的运行期配置（例如校园网部署所需的 TURN）通过受登录保护的
+    # API 下发，凭据仍只保存在服务器的 .env 中。
+    from server.web_routes import setup_web_routes
+    setup_web_routes(appasync)
+
+    web_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+
+    async def web_home(_request):
+        """网页端统一入口；鉴权中间件会在需要登录时先跳到 login.html。"""
+        raise web.HTTPFound("/index.html")
+
+    appasync.router.add_get("/", web_home)
+    appasync.router.add_static("/", path=web_dir, show_index=False)
 
 
     # 跨域来源收敛为显式允许列表（CORS_ALLOWED_ORIGINS）；未配置时仅允许同源访问。

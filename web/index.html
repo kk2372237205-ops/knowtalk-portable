@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1324">
+  <title>知课 KnowTalking</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="知课首页">知课 <span>KnowTalking</span></a>
+      <div class="topbar-right">
+        <span id="server-state" class="server-state is-waiting">正在检测服务</span>
+        <span id="account-name" class="account-name"></span>
+        <button id="logout-button" class="text-button" type="button" hidden>退出登录</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="control-panel">
+        <div>
+          <p class="eyebrow">在线演示</p>
+          <h1>数字人开播</h1>
+          <p class="subtle">连接由服务器推理，浏览器只接收 WebRTC 音视频。</p>
+        </div>
+
+        <label class="field-label" for="avatar-select">数字人形象</label>
+        <select id="avatar-select" disabled>
+          <option>正在读取形象列表…</option>
+        </select>
+        <p id="avatar-hint" class="field-hint">请等待主服务完成启动。</p>
+
+        <div class="button-row">
+          <button id="connect-button" class="button primary" type="button" disabled>开始连接</button>
+          <button id="interrupt-button" class="button secondary" type="button" disabled>打断朗读</button>
+        </div>
+        <button id="fullscreen-button" class="button secondary full-width" type="button">全屏显示</button>
+
+        <div class="connection-card" aria-live="polite">
+          <span id="connection-dot" class="dot"></span>
+          <div>
+            <strong id="connection-state">未连接</strong>
+            <p id="connection-detail">选择形象后开始连接。</p>
+          </div>
+        </div>
+
+        <p class="security-note">浏览器会使用本机默认扬声器播放声音。首次播放需由用户点击“开始连接”。</p>
+      </aside>
+
+      <section id="stage-shell" class="stage-shell" aria-label="数字人画面">
+        <div class="stage-toolbar">
+          <span id="stage-status">等待连接</span>
+          <button id="stage-fullscreen-button" class="icon-button" type="button" title="全屏显示" aria-label="全屏显示">⛶</button>
+        </div>
+        <video id="avatar-video" autoplay playsinline></video>
+        <div id="video-placeholder" class="video-placeholder">连接后将在这里播放数字人画面</div>
+        <p id="subtitle" class="subtitle" hidden></p>
+        <nav id="menu-list" class="menu-list" aria-label="展项菜单">
+          <span class="menu-empty">正在读取菜单…</span>
+        </nav>
+        <p id="menu-message" class="menu-message" aria-live="polite"></p>
+      </section>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>

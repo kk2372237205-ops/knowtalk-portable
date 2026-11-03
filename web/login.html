@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1324">
+  <title>登录 · 知课 KnowTalking</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="login-body">
+  <main class="login-card">
+    <a class="brand" href="/">知课 <span>KnowTalking</span></a>
+    <p class="eyebrow" id="login-eyebrow">安全访问</p>
+    <h1 id="login-title">登录</h1>
+    <p id="login-description" class="subtle">使用服务器管理员账号继续。</p>
+    <form id="login-form">
+      <label class="field-label" for="username">账号</label>
+      <input id="username" name="username" autocomplete="username" required maxlength="64">
+      <label class="field-label" for="password">密码</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8">
+      <div id="confirm-wrap" hidden>
+        <label class="field-label" for="password-confirm">确认密码</label>
+        <input id="password-confirm" name="password-confirm" type="password" autocomplete="new-password" minlength="8">
+      </div>
+      <p id="login-message" class="form-message" aria-live="polite"></p>
+      <button id="login-button" class="button primary full-width" type="submit">登录</button>
+    </form>
+  </main>
+  <script src="/login.js" defer></script>
+</body>
+</html>
