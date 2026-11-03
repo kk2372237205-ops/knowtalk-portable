@@ -23,6 +23,7 @@ import threading
 import time
 from typing import Tuple, Dict, Optional, Set, Union
 import queue
+from collections import deque
 from av.frame import Frame
 from av.packet import Packet
 from av import AudioFrame
@@ -37,6 +38,14 @@ VIDEO_PTIME = 0.040 #1 / 25  # 30fps
 VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 SAMPLE_RATE = 16000
 AUDIO_TIME_BASE = fractions.Fraction(1, SAMPLE_RATE)
+
+# MuseTalk 的视频推理和音频打包在不同线程中运行。消费端严格每 20ms 索取一帧，
+# 生产端偶发一次 CPU/GPU 调度抖动就会被误判成缺帧并塞入静音。首个语音包先积累
+# 120ms，可吸收正常抖动；朗读途中则额外等待至多 80ms。两者均小于人能察觉的
+# 对话延迟，但能显著减少“说话中间被补静音”造成的断续感。
+AUDIO_PREROLL_PACKETS = 6
+AUDIO_PREROLL_WAIT = 0.160
+AUDIO_UNDERRUN_WAIT = 0.080
 
 # 拆除会话时等待渲染线程退出（秒）。
 # 必须有界：该 join 发生在 aiohttp 事件循环线程里（aiortc 轨道 stop 的调用路径
@@ -80,6 +89,10 @@ class PlayerStreamTrack(MediaStreamTrack):
         # 不是故障，因此单独计数、不以"欠载/中断"措辞告警。
         self.audio_idle_stalls = 0
         self._produced_real_audio = False
+        # 首个带 ``status=start`` 的实际语音包不会立刻交给 RTP；先在这里留出
+        # 一小段抖动缓冲。只保留音频包对象，不复制 PCM，内存占用极小。
+        self._audio_preroll = deque()
+        self.audio_prerolls = 0
         if self.kind == 'video':
             self.framecount = 0
             self.lasttime = time.perf_counter()
@@ -143,46 +156,96 @@ class PlayerStreamTrack(MediaStreamTrack):
         except Exception:
             return None
 
+    @staticmethod
+    def _is_speech_start(eventpoint) -> bool:
+        return isinstance(eventpoint, dict) and eventpoint.get('status') == 'start'
+
+    async def _wait_for_audio_item(self, timeout: float):
+        """等待生产线程交付一个音频包，超时返回 ``None``。
+
+        ``queue.Queue`` 由渲染线程写、aiohttp 事件循环读，不能在这里做阻塞
+        ``get``；使用短暂 ``asyncio.sleep`` 既让出事件循环，也不改变 RTP 时钟。
+        """
+        deadline = time.perf_counter() + max(0.0, timeout)
+        while True:
+            try:
+                return self._queue.get_nowait()
+            except queue.Empty:
+                remaining = deadline - time.perf_counter()
+                if remaining <= 0:
+                    return None
+                await asyncio.sleep(min(0.002, remaining))
+
+    async def _next_audio_item(self):
+        """取下一包实际音频，并在一段语音开头建立小型抖动缓冲。"""
+        if self._audio_preroll:
+            return self._audio_preroll.popleft()
+
+        item = await self._wait_for_audio_item(0.0)
+        if item is None:
+            # 朗读过程中，给渲染线程最多 80ms 的调度余量。此前这里只有 20ms，
+            # GPU 一次正常的 VAE 波动就会直接变成可闻的静音洞。
+            grace = AUDIO_UNDERRUN_WAIT if self._player_speaking() is not False else AUDIO_PTIME
+            return await self._wait_for_audio_item(grace)
+
+        _, eventpoint = item
+        if not self._is_speech_start(eventpoint):
+            return item
+
+        self._audio_preroll.append(item)
+        deadline = time.perf_counter() + AUDIO_PREROLL_WAIT
+        while len(self._audio_preroll) < AUDIO_PREROLL_PACKETS:
+            remaining = deadline - time.perf_counter()
+            if remaining <= 0:
+                break
+            item = await self._wait_for_audio_item(remaining)
+            if item is None:
+                break
+            self._audio_preroll.append(item)
+
+        self.audio_prerolls += 1
+        mylogger.info(
+            '音频预缓冲就绪：第 %d 段，缓存 %d 包（%.0fms）',
+            self.audio_prerolls,
+            len(self._audio_preroll),
+            len(self._audio_preroll) * AUDIO_PTIME * 1000,
+        )
+        return self._audio_preroll.popleft()
+
     async def recv(self) -> Union[Frame, Packet]:
         # frame = self.frames[self.counter % 30]            
         self._player._start(self)
         if self.kind == 'audio':
-            # 给生产线程留出一个很短的时间，避免合成线程抖动时插入静音断点。
-            deadline = time.perf_counter() + AUDIO_PTIME
-            while True:
-                try:
-                    frame, eventpoint = self._queue.get_nowait()
-                    if not self._produced_real_audio:
-                        self._produced_real_audio = True
-                        if self.audio_idle_stalls:
-                            mylogger.info(
-                                '音频轨开始出帧（此前空转 %d 帧，约 %.2f 秒）',
-                                self.audio_idle_stalls,
-                                self.audio_idle_stalls * AUDIO_PTIME)
-                    if self.audio_underruns:
-                        # 音频恢复，计数重置，让下一次独立中断能被单独识别。
-                        self.audio_underruns = 0
-                    break
-                except queue.Empty:
-                    if time.perf_counter() >= deadline:
-                        if self._player_speaking() is False:
-                            # 还没开始朗读（或已读完）：插入静音只是维持实时轨时钟，
-                            # 不是故障，不计入中断粮、也不以欠载措辞告警。
-                            self.audio_idle_stalls += 1
-                        else:
-                            self.audio_underruns += 1
-                            if self.audio_underruns == 1 or self.audio_underruns % 25 == 0:
-                                mylogger.warning(
-                                    'audio queue underrun: count=%d, queued=%d',
-                                    self.audio_underruns,
-                                    self._queue.qsize(),
-                                )
-                        audio = np.zeros((1, 320), dtype=np.int16)
-                        frame = AudioFrame.from_ndarray(audio, layout='mono', format='s16')
-                        frame.sample_rate = 16000
-                        eventpoint = None
-                        break
-                    await asyncio.sleep(0.001)
+            item = await self._next_audio_item()
+            if item is not None:
+                frame, eventpoint = item
+                if not self._produced_real_audio:
+                    self._produced_real_audio = True
+                    if self.audio_idle_stalls:
+                        mylogger.info(
+                            '音频轨开始出帧（此前空转 %d 帧，约 %.2f 秒）',
+                            self.audio_idle_stalls,
+                            self.audio_idle_stalls * AUDIO_PTIME)
+                if self.audio_underruns:
+                    # 音频恢复，计数重置，让下一次独立中断能被单独识别。
+                    self.audio_underruns = 0
+            else:
+                if self._player_speaking() is False:
+                    # 还没开始朗读（或已朗读完）：插入静音只是维持实时轨时钟，
+                    # 不是故障，不计入中断粮、也不以“欠载”措辞告警。
+                    self.audio_idle_stalls += 1
+                else:
+                    self.audio_underruns += 1
+                    if self.audio_underruns == 1 or self.audio_underruns % 25 == 0:
+                        mylogger.warning(
+                            'audio queue underrun: count=%d, queued=%d',
+                            self.audio_underruns,
+                            self._queue.qsize(),
+                        )
+                audio = np.zeros((1, 320), dtype=np.int16)
+                frame = AudioFrame.from_ndarray(audio, layout='mono', format='s16')
+                frame.sample_rate = 16000
+                eventpoint = None
         else:
             # 视频轨道：等待数据
             while True:
@@ -213,6 +276,7 @@ class PlayerStreamTrack(MediaStreamTrack):
     def stop(self):
         super().stop()
         # Drain & delete remaining frames
+        self._audio_preroll.clear()
         while not self._queue.empty():
             item = self._queue.get_nowait()
             del item

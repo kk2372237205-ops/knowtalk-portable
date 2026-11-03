@@ -12,7 +12,7 @@ import asyncio
 import logging
 import unittest
 
-from server.webrtc import PlayerStreamTrack
+from server.webrtc import AUDIO_PREROLL_PACKETS, PlayerStreamTrack
 
 
 class FakePlayer(object):
@@ -20,12 +20,16 @@ class FakePlayer(object):
 
     def __init__(self, speaking=False):
         self.speaking = speaking
+        self.events = []
 
     def _start(self, track):
         pass
 
     def is_speaking(self):
         return self.speaking
+
+    def notify(self, eventpoint):
+        self.events.append(eventpoint)
 
 
 class NoStatePlayer(object):
@@ -160,6 +164,50 @@ class SpeakingUnderrunTestCase(unittest.TestCase):
         drain(track, 2)
         self.assertEqual(track.audio_underruns, 2,
                          '下一次独立中断必须从 1 重新开始（这里饿了 2 帧）')
+
+
+class AudioJitterBufferTestCase(unittest.TestCase):
+    def _frame(self, value=0):
+        import numpy as np
+        from av import AudioFrame
+
+        pcm = np.full((1, 320), value, dtype=np.int16)
+        frame = AudioFrame.from_ndarray(pcm, layout='mono', format='s16')
+        frame.sample_rate = 16000
+        return frame
+
+    def test_speech_start_prerolls_before_first_packet(self):
+        player = FakePlayer(speaking=True)
+        track = make_track(player)
+        for index in range(AUDIO_PREROLL_PACKETS):
+            eventpoint = {'status': 'start'} if index == 0 else None
+            track._queue.put((self._frame(index), eventpoint))
+
+        frame = drain(track, 1)[0]
+
+        self.assertEqual(frame.samples, 320)
+        self.assertEqual(track.audio_prerolls, 1)
+        self.assertEqual(len(track._audio_preroll), AUDIO_PREROLL_PACKETS - 1)
+        self.assertEqual(track.audio_underruns, 0)
+        self.assertEqual(player.events, [{'status': 'start'}])
+
+    def test_speaking_waits_for_a_late_packet_before_inserting_silence(self):
+        player = FakePlayer(speaking=True)
+        track = make_track(player)
+        loop = asyncio.new_event_loop()
+        try:
+            async def produce():
+                await asyncio.sleep(0.025)
+                track._queue.put((self._frame(123), None))
+
+            loop.create_task(produce())
+            frame = loop.run_until_complete(track.recv())
+        finally:
+            loop.close()
+
+        self.assertTrue(track._produced_real_audio)
+        self.assertEqual(track.audio_underruns, 0)
+        self.assertEqual(frame.to_ndarray()[0, 0], 123)
 
 
 class UnknownSpeakingStateTestCase(unittest.TestCase):
