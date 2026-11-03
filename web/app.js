@@ -28,6 +28,7 @@
     connectionDot: $("#connection-dot"),
     connectionState: $("#connection-state"),
     interrupt: $("#interrupt-button"),
+    scriptSpeak: $("#script-speak-button"),
     voiceWake: $("#voice-wake-button"),
     logout: $("#logout-button"),
     menuList: $("#menu-list"),
@@ -498,6 +499,7 @@
       ui.connect.textContent = "断开连接";
       ui.avatar.disabled = true;
       ui.interrupt.disabled = false;
+      ui.scriptSpeak.disabled = false;
       ui.voiceWake.disabled = false;
       updateMenuAvailability();
       startSubtitlePolling();
@@ -537,6 +539,7 @@
     ui.connect.disabled = !ui.avatar.value;
     ui.avatar.disabled = !ui.avatar.value;
     ui.interrupt.disabled = true;
+    ui.scriptSpeak.disabled = true;
     ui.voiceWake.disabled = true;
     ui.menuMessage.textContent = "";
     updateMenuAvailability();
@@ -569,6 +572,36 @@
       ui.menuMessage.textContent = "打断失败：" + error.message;
     } finally {
       ui.interrupt.disabled = !state.sessionId;
+    }
+  }
+
+  async function speakSavedScript() {
+    if (!state.sessionId) return;
+    const script = String(window.localStorage.getItem("knowtalk.script") || "").trim();
+    if (!script) {
+      ui.menuMessage.textContent = "暂无已保存的讲稿，请先到“讲稿”页输入并保存。";
+      setDetail("讲稿页保存后，可在这里一键朗读。");
+      return;
+    }
+
+    ui.scriptSpeak.disabled = true;
+    clearSubtitle();
+    ui.menuMessage.textContent = "正在送入讲稿朗读队列…";
+    try {
+      await api("/human", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionid: state.sessionId,
+          type: "echo",
+          text: script,
+          interrupt: true,
+        }),
+      });
+      ui.menuMessage.textContent = "正在朗读已保存讲稿。";
+    } catch (error) {
+      ui.menuMessage.textContent = "讲稿朗读失败：" + error.message;
+    } finally {
+      ui.scriptSpeak.disabled = !state.sessionId;
     }
   }
 
@@ -620,6 +653,7 @@
 
   ui.connect.addEventListener("click", toggleConnection);
   ui.interrupt.addEventListener("click", interrupt);
+  ui.scriptSpeak.addEventListener("click", speakSavedScript);
   ui.voiceWake.addEventListener("click", () => {
     try {
       if (state.voiceWakeEnabled) stopVoiceWake(); else startVoiceWake();
