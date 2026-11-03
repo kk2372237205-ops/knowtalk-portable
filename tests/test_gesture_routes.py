@@ -159,6 +159,15 @@ class HumanEchoGestureTestCase(unittest.TestCase):
         self.assertEqual(self.session.delivered[0][0], '我们来分析这个问题。')
         self.assertEqual(self.session.delivered[0][1]['gesture'], 'explain')
 
+    def test_trailing_gesture_is_delivered_after_speech(self):
+        with mock.patch.object(gesture_utils, 'list_gestures',
+                               return_value=[{'id': 'wave_one', 'label': '挥手'}]):
+            body = self.post('大家好，我是陈老师[GESTURE:wave_one]')
+        self.assertEqual(body['code'], 0)
+        self.assertEqual(self.session.texts, ['大家好，我是陈老师'])
+        self.assertEqual(self.session.delivered[0][1]['gesture_after'], 'wave_one')
+        self.assertNotIn('gesture', self.session.delivered[0][1])
+
     def test_unknown_gesture_is_dropped_but_text_still_reads(self):
         """不可用手势 MUST NOT 让整篇讲稿停下：只摘掉该段的手势，文字照常朗读。"""
         with mock.patch.object(gesture_utils, 'list_gestures',

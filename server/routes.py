@@ -53,13 +53,17 @@ _SEGMENT_TAG_RE = re.compile(
 )
 
 
-def _parse_segments(text: str):
+def _parse_segments(text: str, *, include_gesture_timing: bool = False):
     """
-    按段落边界标签分段，返回 [(text, slide_id, gesture), ...]
+    按段落边界标签分段。
+
+    默认返回 ``[(text, slide_id, gesture), ...]``，保持既有调用方兼容。
+    ``include_gesture_timing=True`` 时额外返回 ``gesture_timing``：
+    ``"before"`` 表示边说边做，``"after"`` 表示说完后再做。
 
     两类标签都作为段落边界，标签在文本中的先后顺序就是播放顺序：
       [PPT:N] / [slide:N]  → 该段开始朗读时应显示的幻灯片
-      [GESTURE:<id>]       → 该段开始朗读时应触发的手势
+      [GESTURE:<id>]       → 该段的动作指令
 
     语义要点：
       - slide_id 会一直沿用到下一个幻灯片标签（与改动前一致）；
@@ -71,6 +75,10 @@ def _parse_segments(text: str):
     示例：
       "[PPT:1] 欢迎。[GESTURE:wave] 大家好。[PPT:2] 今天介绍新产品。"
       → [("欢迎。", 1, None), ("大家好。", 1, "wave"), ("今天介绍新产品。", 2, None)]
+
+      "大家好，我是陈老师[GESTURE:wave_one]"
+      → 详细模式中为 ("大家好，我是陈老师", None, "wave_one", "after")；
+        这使动作在语音结束后才开始，避免与讲话口型同时合成。
     """
     segments = []
     current_slide = None
@@ -79,7 +87,8 @@ def _parse_segments(text: str):
     for match in _SEGMENT_TAG_RE.finditer(text):
         seg_text = text[cursor:match.start()].strip()
         if seg_text:
-            segments.append((seg_text, current_slide, pending_gesture))
+            segments.append((seg_text, current_slide, pending_gesture,
+                             "before" if pending_gesture else None))
             pending_gesture = None
         slide = match.group('slide')
         if slide is not None:
@@ -89,21 +98,22 @@ def _parse_segments(text: str):
         cursor = match.end()
     tail = text[cursor:].strip()
     if tail:
-        segments.append((tail, current_slide, pending_gesture))
+        segments.append((tail, current_slide, pending_gesture,
+                         "before" if pending_gesture else None))
     elif pending_gesture is not None and segments:
         # 兼容句末动作标签，例如“大家好，我是陈老师[GESTURE:wave_one]”。
         # 常规语义仍是标签作用于后文；只有标签后没有可朗读文本时，才把它
         # 作用到紧邻前一段。前一段已有动作时保留先出现的动作，避免覆盖。
-        previous_text, previous_slide, previous_gesture = segments[-1]
+        previous_text, previous_slide, previous_gesture, _previous_timing = segments[-1]
         if previous_gesture is None:
-            segments[-1] = (previous_text, previous_slide, pending_gesture)
+            segments[-1] = (previous_text, previous_slide, pending_gesture, "after")
     # 如果没有标签，返回整段文本
     if not segments:
-        segments = [(text.strip(), None, None)]
+        segments = [(text.strip(), None, None, None)]
 
     # 防止整套演讲稿被重复粘贴后播放两遍。只有当页码重新回到起始页，
     # 且后半段仍按升序构成一套不短于前半段的稿件时，才视为重复。
-    tagged = [(index, slide_id) for index, (_, slide_id, _gesture) in enumerate(segments)
+    tagged = [(index, slide_id) for index, (_, slide_id, _gesture, _timing) in enumerate(segments)
               if slide_id is not None]
     if tagged:
         first_slide = tagged[0][1]
@@ -121,8 +131,11 @@ def _parse_segments(text: str):
                 )
                 segments = segments[segment_index:]
                 break
-    logger.info(f"[PPT分段] 共 {len(segments)} 段，顺序: {[(s[1], s[2], s[0][:30]) for s in segments]}")
-    return segments
+    logger.info(f"[PPT分段] 共 {len(segments)} 段，顺序: {[(s[1], s[2], s[3], s[0][:30]) for s in segments]}")
+    if include_gesture_timing:
+        return segments
+    return [(seg_text, slide_id, gesture)
+            for seg_text, slide_id, gesture, _timing in segments]
 
 
 def _parse_ppt_segments(text: str):
@@ -233,15 +246,17 @@ async def human(request):
                     mat_mgr.remember_lecture(sessionid, text)
                 except Exception:  # noqa: BLE001 - 留底失败不影响本次朗读
                     logger.exception("[提问] 讲稿留底失败（不影响朗读）")
-            # 按段落边界标签分段（[PPT:N] / [slide:N] / [GESTURE:<id>]），
-            # 每段携带 slide_id 与 gesture；两者都只在该段真正开始朗读时生效。
-            segments = _parse_segments(text)
+            # 按段落边界标签分段（[PPT:N] / [slide:N] / [GESTURE:<id>]）。
+            # 动作标签写在文字前时段首触发；写在句末时在段尾触发。
+            segments = _parse_segments(text, include_gesture_timing=True)
             # 手势在受理阶段校验：**不可用的手势只摘除该段的手势指令**，不拒绝整篇
             # 讲稿。换形象时讲稿里的手势标签对不上是常态（不同形象的手势集合可能
             # 互不相交），此时整篇报错等于数字人彻底不出声，用户只看到"连上了却不
             # 说话"。摘除后该段按默认素材渲染，文字照常朗读。
             # 同时记警告并把警告回给调用方——降级但不静默。
-            requested_gestures = [gesture for _text, _slide, gesture in segments if gesture]
+            requested_gestures = [
+                gesture for _text, _slide, gesture, _timing in segments if gesture
+            ]
             warnings = []
             if requested_gestures:
                 avatar_id = getattr(getattr(avatar_session, 'opt', None), 'avatar_id', None)
@@ -258,8 +273,8 @@ async def human(request):
                     })
                     # 摘除不可用手势：这些段按默认素材渲染，其余段的手势照常生效。
                     segments = [
-                        (seg_text, slide_id, None if gesture in missing else gesture)
-                        for (seg_text, slide_id, gesture) in segments
+                        (seg_text, slide_id, None if gesture in missing else gesture, timing)
+                        for (seg_text, slide_id, gesture, timing) in segments
                     ]
                 if usable:
                     try:
@@ -267,7 +282,7 @@ async def human(request):
                     except Exception:  # noqa: BLE001
                         # 预热只是让首次触发赶上段首；失败不影响本次朗读
                         logger.exception('[手势标签] 后台预热失败（不影响本次朗读）')
-            for seg_text, slide_id, gesture in segments:
+            for seg_text, slide_id, gesture, gesture_timing in segments:
                 # 新请求到达后，旧请求即使仍在当前线程中，也不得继续入队。
                 if request_id != avatar_session.speech_request_id:
                     break
@@ -277,8 +292,12 @@ async def human(request):
                     seg_datainfo['slide_id'] = resolved_slide_id
                     logger.info(f"[PPT标签] echo 分段: slide={resolved_slide_id}, text={seg_text[:30]}")
                 if gesture is not None:
-                    seg_datainfo['gesture'] = gesture
-                    logger.info(f"[手势标签] echo 分段: gesture={gesture}, text={seg_text[:30]}")
+                    if gesture_timing == 'after':
+                        seg_datainfo['gesture_after'] = gesture
+                        logger.info(f"[手势标签] echo 段末动作: gesture={gesture}, text={seg_text[:30]}")
+                    else:
+                        seg_datainfo['gesture'] = gesture
+                        logger.info(f"[手势标签] echo 段首动作: gesture={gesture}, text={seg_text[:30]}")
                 avatar_session.put_msg_txt(seg_text, seg_datainfo)
         elif params['type'] == 'chat':
             text = params['text']

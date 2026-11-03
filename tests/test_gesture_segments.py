@@ -94,6 +94,20 @@ class MultipleGesturesTestCase(unittest.TestCase):
         segments = _parse_segments("大家好，我是陈老师[GESTURE:wave_one]")
         self.assertEqual(segments, [("大家好，我是陈老师", None, "wave_one")])
 
+    def test_trailing_gesture_runs_after_its_sentence(self):
+        segments = _parse_segments(
+            "大家好，我是陈老师[GESTURE:wave_one]",
+            include_gesture_timing=True,
+        )
+        self.assertEqual(segments, [("大家好，我是陈老师", None, "wave_one", "after")])
+
+    def test_leading_gesture_runs_when_its_sentence_starts(self):
+        segments = _parse_segments(
+            "[GESTURE:wave_one]大家好，我是陈老师。",
+            include_gesture_timing=True,
+        )
+        self.assertEqual(segments, [("大家好，我是陈老师。", None, "wave_one", "before")])
+
     def test_trailing_gesture_does_not_replace_existing_gesture(self):
         segments = _parse_segments("[GESTURE:wave] 大家好。[GESTURE:point]")
         self.assertEqual(segments, [("大家好。", None, "wave")])
