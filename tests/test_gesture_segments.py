@@ -86,9 +86,17 @@ class MultipleGesturesTestCase(unittest.TestCase):
             ("第二段没有标签。", 2, None),
         ])
 
-    def test_trailing_gesture_without_text_is_dropped(self):
+    def test_trailing_gesture_without_text_attaches_to_previous_segment(self):
         segments = _parse_segments("第一段。[GESTURE:wave]")
-        self.assertEqual(segments, [("第一段。", None, None)])
+        self.assertEqual(segments, [("第一段。", None, "wave")])
+
+    def test_trailing_gesture_supports_inline_sentence_syntax(self):
+        segments = _parse_segments("大家好，我是陈老师[GESTURE:wave_one]")
+        self.assertEqual(segments, [("大家好，我是陈老师", None, "wave_one")])
+
+    def test_trailing_gesture_does_not_replace_existing_gesture(self):
+        segments = _parse_segments("[GESTURE:wave] 大家好。[GESTURE:point]")
+        self.assertEqual(segments, [("大家好。", None, "wave")])
 
 
 class EquivalenceTestCase(unittest.TestCase):

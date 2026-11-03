@@ -65,6 +65,8 @@ def _parse_segments(text: str):
       - slide_id 会一直沿用到下一个幻灯片标签（与改动前一致）；
       - gesture **不继承**：段内没有手势标签，该段的 gesture 就是 None；
       - 一段内出现多个手势标签时取第一个，其余一并从朗读文本移除。
+      - 动作标签可写在所作用文字的前面；若动作标签位于整段末尾，则兼容地
+        绑定到紧邻的前一段文字，方便使用“文字[GESTURE:动作ID]”的写法。
 
     示例：
       "[PPT:1] 欢迎。[GESTURE:wave] 大家好。[PPT:2] 今天介绍新产品。"
@@ -88,6 +90,13 @@ def _parse_segments(text: str):
     tail = text[cursor:].strip()
     if tail:
         segments.append((tail, current_slide, pending_gesture))
+    elif pending_gesture is not None and segments:
+        # 兼容句末动作标签，例如“大家好，我是陈老师[GESTURE:wave_one]”。
+        # 常规语义仍是标签作用于后文；只有标签后没有可朗读文本时，才把它
+        # 作用到紧邻前一段。前一段已有动作时保留先出现的动作，避免覆盖。
+        previous_text, previous_slide, previous_gesture = segments[-1]
+        if previous_gesture is None:
+            segments[-1] = (previous_text, previous_slide, pending_gesture)
     # 如果没有标签，返回整段文本
     if not segments:
         segments = [(text.strip(), None, None)]

@@ -113,7 +113,7 @@
 
   // ── 讲稿 ────────────────────────────────────────────────────────
   function renderScript() {
-    page("讲稿", "支持 [PPT:N] 和 [GESTURE:动作ID] 标签；保存于当前浏览器，可直接让已连接数字人朗读。", `
+    page("讲稿", "支持 [PPT:N] 和 [GESTURE:动作ID] 标签；动作标签可写在文字前或句末。保存于当前浏览器，可直接让已连接数字人朗读。", `
       <section class="page-grid single"><article class="work-card">
         <textarea id="script-text" aria-label="讲稿内容" placeholder="例如：[PPT:1] 大家好，欢迎来到本节课程。">${esc(localStorage.getItem("knowtalk.script") || "")}</textarea>
         <div class="button-bar">
