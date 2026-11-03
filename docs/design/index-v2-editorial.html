@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知课 · 首页设计稿 v2 · 讲义版</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   知课首页 v2 —— 杂志编辑（Editorial）方向
+   调性：一本备课讲义。衬线大标题 + 发丝规则线 + 12 列栅格 + 极淡纸纹
+   纪律：全页两个色相。蓝墨水负责一切交互，粉笔黄只允许出现在黑板上
+   ═══════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: hidden; }
+
+:root {
+    /* 两套字体栈：衬线做展示（讲义感），无衬线做正文，等宽做规格标注。
+       全部取自系统自带，不加载任何外部字体 —— 本地离线部署的前提。 */
+    --serif: "Songti SC", "STSong", "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+            "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* 纸与墨 */
+    --paper: #fbf8f1;
+    --paper-2: #f5efe0;
+    --ink: #1c1a15;
+    --muted: #635f56;
+    --faint: #9a9488;
+    --rule: #e4ddcb;
+    --rule-2: #cfc6ae;
+
+    /* 主色：蓝墨水。强调色：粉笔黄，仅限深色区 */
+    --blue: #1f3b63;
+    --blue-deep: #142c4a;
+    --chalk: #e0c274;
+    --board: #16150f;
+
+    /* 字阶：1.32 比例打底，关键标题做 3–4 倍跳跃 */
+    --fs-xs: 11.5px;
+    --fs-sm: 13.5px;
+    --fs-base: 15px;
+    --fs-md: 17px;
+    --fs-lg: 21px;
+    --fs-xl: 30px;
+    --fs-2xl: 40px;
+    --fs-display: clamp(40px, 5.6vw, 80px);
+
+    /* 间距梯度 */
+    --s1: 6px;  --s2: 12px; --s3: 20px; --s4: 32px;
+    --s5: 52px; --s6: 84px; --s7: 112px;
+
+    --ease: cubic-bezier(.16, 1, .3, 1);
+
+    /* 颗粒：深色块共用，别复制第二份 */
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--fs-base);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, p, figure, ol, dl, dd, dt { margin: 0; }
+ol { padding: 0; }
+button { font: inherit; cursor: pointer; }
+
+a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+    border-radius: 1px;
+}
+.board a:focus-visible { outline-color: var(--chalk); }
+
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 36px; }
+.serif { font-family: var(--serif); }
+
+/* 章节眉标：等宽小字 + 一条延伸到栏尾的发丝线，全站复用 */
+.kicker {
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--mono); font-size: 12px;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--faint); white-space: nowrap;
+}
+.kicker::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+
+/* ── 导航 ───────────────────────────────────────────────────────── */
+.nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(251, 248, 241, .94);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--rule);
+}
+/* 阅读进度：顶部 1px 蓝线，随滚动拉伸。不加倍，不发光 */
+.nav::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: var(--blue); transform: scaleX(var(--p, 0)); transform-origin: 0 50%;
+    opacity: .55;
+}
+.nav-inner { display: flex; align-items: center; gap: 34px; height: 62px; }
+.brand {
+    display: flex; align-items: center; gap: 9px;
+    font-family: var(--serif); font-size: 18px; font-weight: 700; letter-spacing: .04em;
+}
+.brand-mark { width: 5px; height: 16px; background: var(--blue); }
+.nav-links { display: flex; gap: 28px; font-size: var(--fs-sm); color: var(--muted); }
+.nav-links a { position: relative; padding: 4px 0; }
+.nav-links a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: var(--blue); transform: scaleX(0); transform-origin: 0 50%;
+    transition: transform .32s var(--ease);
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-links a:hover::after { transform: scaleX(1); }
+.nav-right {
+    margin-left: auto; display: flex; align-items: center; gap: 20px;
+    font-family: var(--mono); font-size: var(--fs-xs); color: var(--muted);
+}
+.nav-status { display: inline-flex; align-items: center; gap: 7px; letter-spacing: .04em; }
+.nav-status i { width: 5px; height: 5px; border-radius: 50%; background: var(--rule-2); }
+.nav-link { color: var(--ink); padding: 4px 0; border-bottom: 1px solid var(--blue); }
+.nav-link:hover { color: var(--blue); }
+
+/* ── 首屏 ───────────────────────────────────────────────────────── */
+.hero { position: relative; overflow: hidden; padding: var(--s7) 0 0; }
+/* 只打光不染色：右上偏冷一束，左下一点暖赭，圆心都在画布外 */
+.hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+        radial-gradient(74% 70% at 78% -20%,
+            rgba(255, 254, 247, .92) 0%, rgba(255, 254, 247, .38) 42%,
+            rgba(255, 254, 247, .08) 66%, rgba(255, 254, 247, 0) 84%),
+        radial-gradient(46% 42% at 2% 112%,
+            rgba(186, 156, 104, .16) 0%, rgba(186, 156, 104, .05) 48%,
+            rgba(186, 156, 104, 0) 76%);
+}
+/* 纸纹：极细颗粒压在最底层，让米白不是一块纯色。透明度再高就成脏点 */
+.hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    opacity: .05; mix-blend-mode: multiply;
+    background-image: var(--noise);
+}
+/* 12 列栅格：标题占 7 列，右栏从第 9 列起 —— 第 8 列硬留空，制造张力 */
+.hero-grid {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0 30px; align-items: end;
+}
+.hero-main { grid-column: 1 / span 7; min-width: 0; }
+.hero-side { grid-column: 9 / span 4; min-width: 0; padding-bottom: 6px; }
+
+.hero-title {
+    margin-top: var(--s4);
+    font-family: var(--serif);
+    font-size: var(--fs-display);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: .01em;
+    color: var(--ink);
+}
+/* 宋体的字面左侧自带空白，往左推一点才和眉标光学对齐 */
+.hero-title { margin-left: -.04em; }
+.hero-title em { font-style: normal; color: #1d4470; }
+/* 标题故意越过正文栏右边界，是这一屏唯一破格的地方 */
+.hero-title span.nudge { display: inline-block; margin-right: -1.2vw; }
+
+/* 引言行：标题下一条线，线下一句衬线短句。杂志的 standfirst 位置 */
+.hero-standfirst {
+    margin-top: 30px; padding-top: 20px;
+    border-top: 1px solid var(--rule-2);
+    font-family: var(--serif); font-size: var(--fs-md);
+    line-height: 1.8; color: var(--muted); letter-spacing: .01em;
+    text-wrap: pretty;
+}
+.hero-standfirst b { font-weight: 700; color: var(--ink); }
+
+.hero-lead { font-size: var(--fs-sm); line-height: 1.95; color: var(--muted); text-wrap: pretty; }
+.hero-lead strong { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.hero-actions { margin-top: var(--s3); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 22px; border-radius: 2px;
+    font-size: var(--fs-sm); font-weight: 500; border: 1px solid transparent;
+    transition: background .18s, border-color .18s, color .18s, transform .18s;
+}
+.btn-primary {
+    background: linear-gradient(180deg, #27496f 0%, var(--blue-deep) 100%);
+    color: #fff; border-color: #12273f; width: 100%;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 1px 2px rgba(10, 22, 36, .18);
+}
+.btn-primary:hover { background: linear-gradient(180deg, #2f5682 0%, #183454 100%); }
+.btn-quiet {
+    background: transparent; color: var(--blue); border-color: transparent;
+    padding: 0; height: 32px; border-bottom: 1px solid var(--blue); border-radius: 0;
+}
+.btn-quiet:hover { color: var(--blue-deep); opacity: .75; }
+
+/* 首屏底部规格带：一条发丝线压住四组等宽数据，不铺底色以免抢标题 */
+.meta-strip { position: relative; z-index: 1; margin-top: var(--s5); border-top: 1px solid var(--rule); }
+.meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.meta-item { padding: 20px 26px 22px 0; border-right: 1px solid var(--rule); }
+.meta-item:last-child { border-right: 0; }
+.meta-key {
+    display: block; font-family: var(--mono); font-size: var(--fs-xs);
+    letter-spacing: .18em; text-transform: uppercase; color: var(--faint);
+}
+.meta-val { display: block; margin-top: 5px; font-size: var(--fs-sm); color: var(--ink); }
+
+/* ── 黑板：全页唯一深色带，颜色都集中在这里 ───────────────────── */
+.board {
+    position: relative; overflow: hidden;
+    padding: var(--s6) 0;
+    background: linear-gradient(148deg, #24221b 0%, #17160f 46%, #0b0b07 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+/* 擦痕：一大片极淡白，模拟被擦过的走向，别叠第二层 */
+.board::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(62% 76% at 78% 10%,
+        rgba(255, 255, 255, .05) 0%, rgba(255, 255, 255, .015) 46%, transparent 74%),
+        radial-gradient(40% 60% at 6% 100%, rgba(224, 194, 116, .045) 0%, transparent 70%);
+}
+.board::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    opacity: .07; mix-blend-mode: overlay; background-image: var(--noise);
+}
+.board > * { position: relative; z-index: 1; }
+.board-grid {
+    display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--s6); align-items: center;
+}
+.board-grid > * { min-width: 0; }
+.board .kicker { color: rgba(224, 194, 116, .58); }
+.board .kicker::after { background: rgba(255, 255, 255, .12); }
+.board-title {
+    margin-top: var(--s3);
+    font-family: var(--serif); font-size: var(--fs-xl); font-weight: 700;
+    line-height: 1.42; color: #f5f2e7; letter-spacing: .01em;
+}
+.board-lead { margin-top: var(--s3); max-width: 26em; font-size: var(--fs-sm); line-height: 1.95; color: #a9a598; }
+
+/* 讲稿面板：行号 + 标签高亮 + 一枚光标，就是这份产品的全部语法 */
+.code {
+    border: 1px solid rgba(255, 255, 255, .12); border-radius: 2px;
+    background: rgba(255, 255, 255, .028);
+    overflow: hidden;
+}
+.code-lines { list-style: none; counter-reset: ln; margin: 0; }
+.code-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 16px; border-bottom: 1px solid rgba(255, 255, 255, .1);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    color: rgba(255, 255, 255, .42); text-transform: uppercase;
+}
+.code-lines li {
+    counter-increment: ln;
+    display: grid; grid-template-columns: 38px minmax(0, 1fr);
+    padding: 3px 16px 3px 0;
+    font-family: var(--mono); font-size: 12.5px; line-height: 2.1;
+    color: #dedfd3;
+}
+.code-lines li::before {
+    content: counter(ln, decimal-leading-zero);
+    text-align: right; padding-right: 14px;
+    color: rgba(255, 255, 255, .2); font-size: 10.5px;
+}
+.code-lines li:hover { background: rgba(255, 255, 255, .035); }
+.code em { font-style: normal; color: var(--chalk); }
+.code-foot {
+    padding: 10px 16px; border-top: 1px solid rgba(255, 255, 255, .1);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+    color: rgba(255, 255, 255, .34);
+}
+/* 光标：讲稿正被念到的那一行 */
+.caret {
+    display: inline-block; width: 7px; height: 13px; margin-left: 2px;
+    background: var(--chalk); vertical-align: -2px;
+    animation: blink 1.15s step-end infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ── 通用区块 ───────────────────────────────────────────────────── */
+.sec { padding: var(--s6) 0 0; }
+/* 章节头：左侧大号衬线序号 + 右侧眉标与标题，形成 3 倍尺度跳跃 */
+.sec-head {
+    display: grid; grid-template-columns: 76px minmax(0, 1fr);
+    gap: 0 24px; align-items: start;
+    padding-bottom: var(--s5); border-bottom: 1px solid var(--rule-2);
+}
+/* 章节序号：淡蓝大数字。与三步的序号同一套语言，全站只有这一处装饰性数字 */
+.sec-no {
+    font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 700;
+    line-height: .92; color: rgba(31, 59, 99, .28); letter-spacing: -.02em;
+}
+.sec-head > div { min-width: 0; }
+.sec-title {
+    margin-top: 10px;
+    font-family: var(--serif); font-size: var(--fs-xl); font-weight: 700;
+    line-height: 1.4; letter-spacing: .01em;
+}
+.sec-note { margin-top: 8px; font-size: var(--fs-sm); color: var(--muted); max-width: 40em; }
+/* 03 段整段嵌一张稍深的纸，让纵向节奏变成 纸 / 板 / 纸 / 深纸 / 板，
+   而不是五段一模一样的分隔线 */
+.sec-tint {
+    margin-top: var(--s5);
+    padding: var(--s6) 0;
+    background: var(--paper-2);
+    border-top: 1px solid var(--rule-2);
+    border-bottom: 1px solid var(--rule-2);
+}
+
+/* ── 内置能力：两栏规格表，行首 hover 出一根蓝线 ─────────────── */
+.cap-row {
+    display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr) 210px;
+    gap: 0 32px; align-items: baseline;
+    padding: 32px 0 34px 24px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    transition: padding-left .32s var(--ease);
+}
+/* 左侧竖线：从 0 高度长出来，是这一节唯一的动效 */
+.cap-row::before {
+    content: ""; position: absolute; left: 0; top: 30px; width: 2px; height: 0;
+    background: var(--blue); transition: height .32s var(--ease);
+}
+.cap-row:hover { padding-left: 32px; }
+.cap-row:hover::before { height: 26px; }
+.cap-row > * { min-width: 0; }
+.cap-name { font-family: var(--serif); font-size: 22px; font-weight: 700; line-height: 1.3; }
+.cap-tag {
+    display: block; margin-top: 7px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    color: var(--faint); text-transform: uppercase;
+}
+.cap-desc { font-size: var(--fs-sm); line-height: 1.9; color: var(--muted); }
+.cap-desc b { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.cap-spec {
+    font-family: var(--mono); font-size: 10.5px; line-height: 1.9;
+    color: var(--faint); letter-spacing: .02em;
+}
+
+/* ── 三步开讲：一条线串起来，序号用衬线大数字 ────────────────── */
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 44px; padding-top: var(--s5); }
+.flow-step { position: relative; display: block; padding-top: 56px; }
+/* 连线：在两组序号之间等距穿过，起点距序号右缘 12px、终点距下一序号左缘 12px，
+   最后一列只画一小截并淡出 —— 三步因此读成一条线，而不是三块并排 */
+.flow-step::before {
+    content: ""; position: absolute; top: 19px; left: 56px; right: -32px; height: 1px;
+    background: linear-gradient(90deg,
+        rgba(31, 59, 99, .40) 0%, rgba(31, 59, 99, .24) 62%, rgba(31, 59, 99, .16) 100%);
+    transition: background .3s;
+}
+.flow-step:last-child::before {
+    right: auto; width: 120px;
+    background: linear-gradient(90deg, rgba(31, 59, 99, .40) 0%, rgba(31, 59, 99, 0) 100%);
+}
+.flow-num {
+    position: absolute; top: -3px; left: 0;
+    font-family: var(--serif); font-size: 44px; font-weight: 700;
+    line-height: 1; color: rgba(31, 59, 99, .34); letter-spacing: -.02em;
+    transition: color .3s;
+}
+.flow-step:hover .flow-num { color: var(--blue); }
+.flow-step h3 { font-size: var(--fs-md); font-weight: 600; }
+.flow-step p { margin-top: 8px; font-size: var(--fs-sm); line-height: 1.85; color: var(--muted); }
+.flow-meta {
+    margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--rule);
+    display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px;
+    font-family: var(--mono); font-size: 10.5px; line-height: 1.8; letter-spacing: .02em;
+}
+.flow-meta dt { color: var(--faint); letter-spacing: .1em; }
+.flow-meta dd { color: var(--muted); }
+.flow-go {
+    display: inline-block; margin-top: 14px; font-size: var(--fs-sm); color: var(--blue);
+    background-image: linear-gradient(var(--blue), var(--blue));
+    background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px;
+    transition: background-size .32s var(--ease);
+    padding-bottom: 2px;
+}
+.flow-step:hover .flow-go { background-size: 100% 1px; }
+
+/* ── 课堂互动：这一节是全页的记忆点，做成一张"现场"纸片 ─────── */
+.quiz-grid {
+    display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+    gap: var(--s6); align-items: start; padding-top: var(--s5);
+}
+.quiz-grid > * { min-width: 0; }
+.quiz-copy h3 { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 700; line-height: 1.5; }
+.quiz-copy p { margin-top: 14px; font-size: var(--fs-sm); line-height: 1.95; color: var(--muted); }
+.quiz-points { margin-top: 26px; list-style: none; }
+.quiz-points li {
+    display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 16px;
+    padding: 11px 0; border-top: 1px solid var(--rule);
+    font-size: var(--fs-sm);
+}
+.quiz-points .k {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    color: var(--faint); text-transform: uppercase; padding-top: 3px;
+}
+.quiz-points .v { color: var(--ink); }
+.quiz-points .v small { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--faint); }
+
+/* 纸片：只有 1px 边和一层极轻的环境影，不做圆角卡片 */
+.sheet {
+    background: #fffdf7;
+    border: 1px solid var(--rule-2);
+    border-radius: 2px;
+    box-shadow: 0 26px 54px -34px rgba(28, 26, 21, .34), 0 1px 0 rgba(255, 255, 255, .8) inset;
+}
+.sheet-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 22px; border-bottom: 1px solid var(--rule);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--faint);
+}
+.sheet-bar b { color: var(--blue); font-weight: 500; }
+.sheet-body { padding: 24px 22px 22px; }
+.sheet-q { font-family: var(--serif); font-size: var(--fs-md); font-weight: 700; line-height: 1.6; }
+.opt {
+    display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px;
+    align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule);
+    font-size: var(--fs-sm); color: var(--muted);
+}
+.opt:first-of-type { border-top: 1px solid var(--rule); margin-top: 16px; }
+.opt i {
+    font-family: var(--mono); font-size: 10.5px; font-style: normal;
+    color: var(--faint); letter-spacing: .06em;
+}
+.opt.is-picked { color: var(--ink); }
+.opt.is-picked i { color: var(--blue); }
+.opt.is-picked span.mark {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    color: var(--blue); border: 1px solid rgba(31, 59, 99, .3);
+    padding: 1px 6px; border-radius: 1px;
+}
+/* 判分条：左侧 2px 蓝线即是"已判"的记号。结论、依据、理由各占自己的位置，
+   挤成一行会把理由压成看不清的小字 */
+.verdict {
+    display: grid; grid-template-columns: 54px minmax(0, 1fr);
+    gap: 12px; align-items: baseline;
+    margin-top: 20px; padding: 14px 16px 14px 14px;
+    border-left: 2px solid var(--blue);
+    background: linear-gradient(90deg, rgba(31, 59, 99, .055) 0%, rgba(31, 59, 99, 0) 100%);
+}
+.verdict b { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; color: var(--blue); font-weight: 500; }
+.verdict div { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.verdict .v-main { font-size: var(--fs-sm); font-weight: 600; color: var(--ink); }
+.verdict em {
+    font-style: normal; font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+    color: var(--faint); white-space: nowrap;
+}
+.verdict .v-why {
+    width: 100%; margin-top: 3px;
+    font-size: var(--fs-xs); line-height: 1.75; color: var(--muted);
+}
+
+/* ── 版权页 ─────────────────────────────────────────────────────── */
+.footer { padding: var(--s5) 0 46px; }
+.footer-grid {
+    display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--s4); align-items: start;
+}
+.footer-brand { font-family: var(--serif); font-size: var(--fs-md); font-weight: 700; letter-spacing: .04em; }
+.footer-desc { margin-top: 8px; max-width: 24em; font-size: var(--fs-xs); line-height: 1.9; color: var(--faint); }
+.footer-col h4 {
+    margin: 0 0 10px; font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--faint); font-weight: 400;
+}
+.footer-col a, .footer-col span {
+    display: block; font-size: var(--fs-xs); line-height: 2.1; color: var(--muted);
+}
+.footer-col a:hover { color: var(--blue); }
+.footer-rule { margin-top: var(--s4); padding-top: 16px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--faint); }
+
+/* ── 入场：一次编排好的序列，错峰 70ms，只动 opacity 与 translateY ──
+   默认是可见的；只有当 JS 确认能跑观察器时才加 .js-motion 把元素藏起来。
+   这样脚本被禁用、或浏览器没有 IO，内容照常显示，不会白屏。 */
+@media (prefers-reduced-motion: no-preference) {
+    .js-motion .rise { opacity: 0; transform: translateY(18px); }
+    .js-motion .rise.in {
+        opacity: 1; transform: none;
+        transition: opacity .62s var(--ease), transform .62s var(--ease);
+        transition-delay: calc(var(--i, 0) * 70ms);
+    }
+    .hero-title, .hero-side, .meta-grid > * { animation: rise-in .7s var(--ease) both; }
+    .hero-title { animation-delay: .04s; }
+    .hero-side { animation-delay: .18s; }
+    .meta-grid > *:nth-child(1) { animation-delay: .3s; }
+    .meta-grid > *:nth-child(2) { animation-delay: .37s; }
+    .meta-grid > *:nth-child(3) { animation-delay: .44s; }
+    .meta-grid > *:nth-child(4) { animation-delay: .51s; }
+    @keyframes rise-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: none; }
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .caret { animation: none; }
+    * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* ── 响应式：每一档都要有明确的构成答案，不只是自动堆叠 ──────── */
+@media (max-width: 1080px) {
+    .cap-row { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); }
+    .cap-spec { grid-column: 2; text-align: left; margin-top: 10px; }
+    .cap-row:hover { padding-left: 26px; }
+}
+
+@media (max-width: 991px) {
+    :root { --s6: 62px; --s7: 68px; }
+    .wrap { padding: 0 22px; }
+    /* 首屏改单列：右栏文字沉到标题下方，仍保持"标题 → 说明 → 动作"的读序 */
+    .hero { padding-top: var(--s7); }
+    .hero-grid { grid-template-columns: 1fr; gap: 0; }
+    .hero-main, .hero-side { grid-column: 1; }
+    /* 单列时两段之间只留一条线：standfirst 已经带了 border-top，这里不再画第二条 */
+    .hero-side { padding: 22px 0 0; border-top: 0; margin-top: 0; }
+    .hero-actions { flex-direction: row; align-items: center; gap: 22px; }
+    .btn-primary { width: auto; }
+    .meta-strip { margin-top: var(--s5); }
+    .meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .meta-item { padding: 16px 18px 18px 0; }
+    .meta-item:nth-child(2n) { border-right: 0; padding-left: 18px; }
+    .meta-item:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+
+    .board-grid { grid-template-columns: 1fr; gap: var(--s4); }
+    .board { padding: var(--s5) 0; }
+    .sec-head { grid-template-columns: 52px minmax(0, 1fr); gap: 0 16px; padding-bottom: var(--s4); }
+    .sec-no { font-size: var(--fs-xl); }
+    .sec-title { font-size: 24px; }
+
+    .cap-row {
+        grid-template-columns: minmax(0, 1fr); gap: 0;
+        padding: 24px 0;
+    }
+    /* 触摸屏没有 hover，那根竖线永远等不到；直接收掉，别留一段无意义的缩进 */
+    .cap-row::before { display: none; }
+    .cap-row:hover { padding-left: 0; }
+    .cap-spec { grid-column: 1; margin-top: 10px; }
+    .cap-desc { margin-top: 10px; }
+
+    /* 三步改单列：竖线在单列里必然穿序号或拖出尾，改用横线分段，序号压在左上 */
+    .flow { grid-template-columns: 1fr; gap: 0; padding-top: var(--s4); }
+    .flow-step { padding: 26px 0 26px 52px; }
+    .flow-step:not(:first-child) { border-top: 1px solid var(--rule); }
+    .flow-step::before,
+    .flow-step:last-child::before { display: none; }
+    .flow-num { top: 24px; left: 0; font-size: 26px; }
+    .flow-meta { grid-template-columns: 48px minmax(0, 1fr); }
+
+    .quiz-grid { grid-template-columns: 1fr; gap: var(--s4); padding-top: var(--s4); }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--s4) 24px; }
+    .nav-links { display: none; }
+}
+
+@media (max-width: 575px) {
+    .wrap { padding: 0 18px; }
+    :root { --s6: 54px; --s7: 56px; }
+    .hero-title { font-size: 36px; }
+    .hero-actions { flex-direction: column; align-items: stretch; }
+    .hero-actions .btn-quiet { align-self: flex-start; }
+    .nav-inner { height: 56px; gap: 16px; }
+    .nav-right { gap: 14px; }
+    .sec-title { font-size: 21px; }
+    .sec-head { grid-template-columns: 1fr; gap: 10px; }
+    .sec-no { font-size: 22px; }
+    .board-title { font-size: 24px; }
+    .code-lines li { font-size: 11.5px; grid-template-columns: 30px minmax(0, 1fr); }
+    .flow-step { padding-left: 48px; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .sheet-body { padding: 20px 16px 18px; }
+    .opt { grid-template-columns: 20px minmax(0, 1fr); }
+    .opt .mark { grid-column: 2; justify-self: start; margin-top: 4px; }
+    .verdict { grid-template-columns: 1fr; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="wrap nav-inner">
+        <span class="brand"><span class="brand-mark"></span>知课</span>
+        <div class="nav-links">
+            <a href="#capabilities">核心能力</a>
+            <a href="#workflow">三步开讲</a>
+            <a href="#interaction">课堂互动</a>
+            <a href="#">工作台</a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-status"><i></i>未连接</span>
+            <a href="#" class="nav-link">设置</a>
+        </div>
+    </div>
+</nav>
+
+<main>
+
+<!-- ══ 首屏：12 列栅格，标题占 8 列，右栏压到第 10 列 ══ -->
+<header class="hero">
+    <div class="wrap hero-grid">
+        <div class="hero-main">
+            <div class="kicker">微课数字人</div>
+            <h1 class="hero-title">把一堂课，<br>交给<span class="nudge"><em>数字人</em>讲。</span></h1>
+            <p class="hero-standfirst"><b>改一行讲稿，不用重录整堂课。</b>录一遍要两小时，说错一句就得重来。</p>
+        </div>
+        <div class="hero-side">
+            <p class="hero-lead">一张正面照片、一份 PPT、一段讲稿，它就能开讲。翻页跟着 [PPT:N] 走，手势也是标签，讲到提问点会自己停下等人答。<strong>形象、课件、成绩都在本机。</strong></p>
+            <div class="hero-actions">
+                <a href="#" class="btn btn-primary">进入工作台</a>
+                <a href="#capabilities" class="btn btn-quiet">它怎么讲 →</a>
+            </div>
+        </div>
+    </div>
+    <div class="meta-strip">
+        <div class="wrap meta-grid">
+            <div class="meta-item">
+                <span class="meta-key">Transport</span>
+                <span class="meta-val">WebRTC · RTMP · 虚拟摄像头</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-key">Slides</span>
+                <span class="meta-val">PPTX / PDF 自动分页</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-key">Inference</span>
+                <span class="meta-val">本机推理 · 数据不出机</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-key">Trigger</span>
+                <span class="meta-val">提问点按页码触发</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ══ 黑板：全页唯一深色带 ══ -->
+<section class="board">
+    <div class="wrap board-grid">
+        <div>
+            <div class="kicker">讲稿长这样</div>
+            <h2 class="board-title">课怎么翻，<br>讲稿说了算。</h2>
+            <p class="board-lead">翻页、手势、出题，都写成标签，插在它该出现的位置。比如 [QUIZ:3] 就是讲到第 3 页停下来出题。按钮帮你插到光标处，语法不用背。</p>
+        </div>
+        <div>
+            <div class="code">
+                <div class="code-bar"><span>lecture.txt</span><span>3 tags</span></div>
+                <ol class="code-lines">
+                    <li><em>[PPT:3]</em></li>
+                    <li>这一页我们看列表和元组。</li>
+                    <li>唯一的实质差别是可变性：</li>
+                    <li>一个能改，一个不能改。</li>
+                    <li><em>[GESTURE:explain]</em></li>
+                    <li>所以当你要一份不会被误改的序列，<span class="caret"></span></li>
+                    <li><em>[QUIZ:3]</em></li>
+                </ol>
+                <div class="code-foot">↑ 标签插在光标处 · 翻到第 3 页自动停下出题</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ 01 内置能力 ══ -->
+<section class="sec" id="capabilities">
+    <div class="wrap">
+        <div class="sec-head rise">
+            <span class="sec-no">01</span>
+            <div>
+                <div class="kicker">Built in</div>
+                <h2 class="sec-title">四件事合起来，才是一堂能自己讲完的课</h2>
+                <p class="sec-note">任何一件单独拿出来都不稀奇，接在一起，能连续讲两小时不用人盯。</p>
+            </div>
+        </div>
+
+        <div class="cap-row rise" style="--i:1">
+            <div>
+                <div class="cap-name">形象与声音</div>
+                <span class="cap-tag">Avatar · Voice</span>
+            </div>
+            <p class="cap-desc">用<b>一张正面照片</b>生成形象，口型跟着音频一帧一帧动。声音可以拿一段参考音频克隆。脸在画面里占多大、嘴张多开，每个形象单独调，换素材不用改代码。</p>
+            <div class="cap-spec">wav2lip 内核<br>面部裁剪 / 幅度可调</div>
+        </div>
+
+        <div class="cap-row rise" style="--i:2">
+            <div>
+                <div class="cap-name">课件与讲稿</div>
+                <span class="cap-tag">Slides · Script</span>
+            </div>
+            <p class="cap-desc">PPT 上传后<b>自动分页转图</b>，讲稿里写 <b>[PPT:N]</b> 就翻到第 N 页。手势写成 [GESTURE:id] 放在句首，播一遍就回到原来的画面，话不断。整份讲稿还是一段纯文本，能复制，也能进版本管理。</p>
+            <div class="cap-spec">PPTX / PDF<br>[PPT:N] · [GESTURE:id]</div>
+        </div>
+
+        <div class="cap-row rise" style="--i:3">
+            <div>
+                <div class="cap-name">课堂互动</div>
+                <span class="cap-tag">Quiz</span>
+            </div>
+            <p class="cap-desc">讲到第 N 页<b>停下来出题</b>，学员翻到那一页才开始计时。答完由模型判分，结果存到本机；点「继续播放」不算没答。</p>
+            <div class="cap-spec">题库 / 内联问答对<br>判分 · 成绩留本地</div>
+        </div>
+
+        <div class="cap-row rise" style="--i:4">
+            <div>
+                <div class="cap-name">知识库问答</div>
+                <span class="cap-tag">RAG</span>
+            </div>
+            <p class="cap-desc">课程文档传上去就建好索引。学员提问时先查文档再回答，<b>答案带页码和段落号</b>，点一下翻回原文那一段。</p>
+            <div class="cap-spec">文档入库 · 分段索引<br>页码可点回</div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ 02 三步开讲 ══ -->
+<section class="sec" id="workflow">
+    <div class="wrap">
+        <div class="sec-head rise">
+            <span class="sec-no">02</span>
+            <div>
+                <div class="kicker">Three steps</div>
+                <h2 class="sec-title">三步开讲</h2>
+                <p class="sec-note">上一步做出来的东西，下一步直接能用。</p>
+            </div>
+        </div>
+
+        <div class="flow">
+            <a class="flow-step rise" href="#" style="--i:0">
+                <span class="flow-num">01</span>
+                <h3>建形象</h3>
+                <p>一张正面清晰的照片，生成能用的形象，顺手把声音也配上。</p>
+                <dl class="flow-meta">
+                    <dt>需要</dt><dd>正面照片一张，肩膀以上入画</dd>
+                    <dt>产出</dt><dd>形象 ID 与手势素材</dd>
+                </dl>
+                <span class="flow-go">打开形象管理 →</span>
+            </a>
+            <a class="flow-step rise" href="#" style="--i:1">
+                <span class="flow-num">02</span>
+                <h3>备课件</h3>
+                <p>PPT 和课程文档传上去，自动分页、建索引，讲稿里直接按页号引用。</p>
+                <dl class="flow-meta">
+                    <dt>需要</dt><dd>PPTX、PDF 或讲义文档</dd>
+                    <dt>产出</dt><dd>分页图 + 知识库索引</dd>
+                </dl>
+                <span class="flow-go">打开课程知识库 →</span>
+            </a>
+            <a class="flow-step rise" href="#" style="--i:2">
+                <span class="flow-num">03</span>
+                <h3>开讲</h3>
+                <p>选好形象和讲稿，接一路输出，点开始。之后不用人盯。</p>
+                <dl class="flow-meta">
+                    <dt>需要</dt><dd>形象、讲稿、一路输出通道</dd>
+                    <dt>产出</dt><dd>整堂课的视频流与成绩单</dd>
+                </dl>
+                <span class="flow-go">进入工作台 →</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ══ 03 课堂互动：全页记忆点 ══ -->
+<section class="sec sec-tint" id="interaction">
+    <div class="wrap">
+        <div class="sec-head rise">
+            <span class="sec-no">03</span>
+            <div>
+                <div class="kicker">In class</div>
+                <h2 class="sec-title">讲到那一步，它自己会停</h2>
+                <p class="sec-note">出题、作答、判分，都在同一个播放页里。</p>
+            </div>
+        </div>
+
+        <div class="quiz-grid">
+            <div class="quiz-copy rise">
+                <h3>题目挂在哪一页，<br>就等到哪一页。</h3>
+                <p>讲稿里写 [QUIZ:3]，讲到第 3 页就停下、静音、把幻灯片冻住，等人作答。翻页之前它就这么等着，不催你，也不会自己跳过去。</p>
+                <ul class="quiz-points">
+                    <li><span class="k">Trigger</span><span class="v">讲到那一页才触发<small>按页序比较，不认页码数字大小</small></span></li>
+                    <li><span class="k">Grade</span><span class="v">模型判分，写明依据<small>判分在后台线程跑，不冻住视频</small></span></li>
+                    <li><span class="k">Record</span><span class="v">作答和成绩存在本机<small>「继续播放」不计为未作答</small></span></li>
+                </ul>
+            </div>
+
+            <div class="rise" style="--i:1">
+                <div class="sheet">
+                    <div class="sheet-bar"><span>课堂 · 第 3 页</span><b>[QUIZ:3]</b></div>
+                    <div class="sheet-body">
+                        <p class="sheet-q">列表和元组，唯一的实质差别是什么？</p>
+                        <div class="opt"><i>A</i><span>占用的内存大小不同</span></div>
+                        <div class="opt is-picked"><i>B</i><span>一个可变，一个不可变</span><span class="mark">已选</span></div>
+                        <div class="opt"><i>C</i><span>能存放的元素类型不同</span></div>
+                        <div class="verdict">
+                            <b>判定</b>
+                            <div>
+                                <span class="v-main">正确</span>
+                                <em>依据 · 第 3 页</em>
+                                <span class="v-why">可变性决定能否原地修改，其余差别都是它的推论。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer class="footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-brand">知课 · 微课数字人</div>
+                <p class="footer-desc">本地部署，装在一台机器上就能跑，不用另配服务器。</p>
+            </div>
+            <div class="footer-col">
+                <h4>管理</h4>
+                <a href="#">形象管理</a>
+                <a href="#">课程知识库</a>
+                <a href="#">管理后台</a>
+            </div>
+            <div class="footer-col">
+                <h4>运行</h4>
+                <span>WebRTC / RTMP 输出</span>
+                <span>本机推理</span>
+                <span>配置随机器保存</span>
+            </div>
+        </div>
+        <div class="footer-rule">
+            <span>KnowTalking 内核</span>
+            <span>数据不出机</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+/* 两件事：滚动揭示 + 阅读进度。全站仅此一段脚本，无依赖。
+   揭示不用 IntersectionObserver —— 只有十几个节点，自己量位置更可靠，
+   也不会因为观察器没回调而把内容永久留在 opacity:0。 */
+(function () {
+    var root = document.documentElement;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = Array.prototype.slice.call(document.querySelectorAll('.rise'));
+
+    // 1) 滚动揭示：元素顶边进入视口 92% 处即揭示，一页只播一次
+    if (reduce) {
+        items.forEach(function (el) { el.classList.add('in'); });
+    } else {
+        root.classList.add('js-motion');
+        var queued = false;
+        function reveal() {
+            var vh = window.innerHeight || root.clientHeight;
+            items.forEach(function (el) {
+                if (el.classList.contains('in')) return;
+                var b = el.getBoundingClientRect();
+                if (b.top < vh * 0.92 && b.bottom > 0) el.classList.add('in');
+            });
+            queued = false;
+        }
+        function onScroll() {
+            if (!queued) { queued = true; requestAnimationFrame(reveal); }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+        requestAnimationFrame(reveal);
+    }
+
+    // 2) 阅读进度：写一个 CSS 变量，交给 transform 去缩放那条 1px 线
+    var ticking = false;
+    function paint() {
+        var h = root.scrollHeight - root.clientHeight;
+        root.style.setProperty('--p', h > 0 ? Math.min(1, root.scrollTop / h) : 0);
+        ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+        if (!ticking) { ticking = true; requestAnimationFrame(paint); }
+    }, { passive: true });
+    paint();
+})();
+</script>
+
+</body>
+</html>

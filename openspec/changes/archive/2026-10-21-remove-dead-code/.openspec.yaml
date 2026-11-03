@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-21
+# 纯清理：不改变任何对外契约（indextts2 从未注册、也从未出现在可选引擎列表里），
+# 因此没有规格增量。
+skip_specs: true

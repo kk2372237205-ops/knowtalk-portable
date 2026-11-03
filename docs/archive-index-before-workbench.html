@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知课 - 微课数字人</title>
+    <link href="/vendor/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #3157d5;
+            --primary-dark: #2445b4;
+            --bg: #f5f7fb;
+            --card-bg: #ffffff;
+            --ink: #172033;
+            --muted: #667085;
+            --line: #e6eaf1;
+            --radius: 10px;
+        }
+        body {
+            font-family: 'Inter', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        .navbar { background: #172033 !important; box-shadow: 0 1px 0 rgba(16,24,40,.12); }
+        .navbar-brand { font-weight: 700; letter-spacing: .1px; font-size: 1.3rem; }
+        .navbar-brand i { color: #8ea8ff; }
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: 0 2px 8px rgba(16,24,40,.035);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--line);
+            padding: 14px 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-header i { color: var(--primary); font-size: 1rem; }
+        .card-body { padding: 18px; }
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none; color: #fff; font-weight: 600;
+            border-radius: 8px; padding: 8px 16px; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary-custom:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(49,87,213,.24); color: #fff; }
+        .btn-primary-custom:active { transform: translateY(0); }
+        .btn-danger-custom { background: #ef4444; border: none; color: #fff; font-weight: 600; border-radius: 8px; padding: 8px 16px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn-danger-custom:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(239,68,68,0.3); }
+        .btn-outline-custom { border: 1px solid #b9c4dc; color: var(--primary); font-weight: 600; border-radius: 8px; padding: 8px 16px; background: #fff; cursor: pointer; transition: all 0.2s; }
+        .btn-outline-custom:hover { background: var(--primary); color: #fff; }
+        .btn-success-custom { background: #10b981; border: none; color: #fff; font-weight: 600; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.8rem; }
+        .session-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; }
+        .connected { background: #d1fae5; color: #065f46; }
+        .disconnected { background: #fee2e2; color: #991b1b; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.on { background: #10b981; }
+        .status-dot.off { background: #ef4444; }
+        label { font-weight: 500; font-size: 0.9rem; color: #64748b; margin-bottom: 4px; }
+        .param-hint { font-size: 0.75rem; color: var(--muted); }
+        ::placeholder { color: #9ca3af !important; opacity: 1; }
+
+        /* ── 预设文本 ── */
+        .preset-textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        /* ── 声音克隆面板 ── */
+        .record-save-btn { background: #059669; }
+        .record-save-btn:hover { background: #047857; }
+        .voice-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 10px; border-radius: 8px;
+            background: #f8f7ff; border: 1px solid #e8e5ff;
+            margin-bottom: 4px;
+        }
+        .voice-item.active { background: #ede9fe; border-color: #8b5cf6; }
+        .voice-item-name { flex: 1; font-size: 0.85rem; font-weight: 500; }
+        .voice-item-badge {
+            font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;
+            background: #8b5cf6; color: #fff;
+        }
+        .voice-item-del {
+            color: #ef4444; cursor: pointer; font-size: 0.8rem;
+            padding: 2px 6px; border-radius: 4px; transition: background 0.15s;
+        }
+        .voice-item-del:hover { background: #fee2e2; }
+        .voice-status {
+            font-size: 0.8rem; padding: 4px 10px; border-radius: 12px;
+            display: inline-block;
+        }
+        .voice-status.active { background: #d1fae5; color: #065f46; }
+        .voice-status.inactive { background: #f3f4f6; color: #6b7280; }
+        /* ── 录音控件 ── */
+        .record-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 20px; font-weight: 600;
+            font-size: 0.85rem; cursor: pointer; border: none;
+            transition: all 0.2s;
+        }
+        .record-btn.start { background: #ef4444; color: #fff; }
+        .record-btn.start:hover { background: #dc2626; }
+        .record-btn.stop { background: #6b7280; color: #fff; }
+        .record-btn.stop:hover { background: #4b5563; }
+        .record-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #fff; display: inline-block;
+        }
+        .recording .record-dot { animation: blink 0.8s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .record-preview {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 10px; background: #fef3c7;
+            border-radius: 8px; margin-top: 6px;
+        }
+        .form-control, .form-select { border-color: #d8deea; color: var(--ink); }
+        .form-control:focus, .form-select:focus {
+            border-color: #7891e7;
+            box-shadow: 0 0 0 3px rgba(49,87,213,.11);
+        }
+        .btn-primary-custom:disabled, .btn-danger-custom:disabled,
+        .btn-outline-custom:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+        .small-link { border:0; background:none; color:var(--primary); font-size:.76rem; padding:0; text-decoration:none; }
+        .preset-card { margin-bottom:16px; }
+        hr { border-color: var(--line); opacity: 1; }
+        @media (max-width: 575.98px) {
+            body { padding-bottom: 20px; }
+            .navbar .container-fluid { padding-left: 16px !important; padding-right: 16px !important; }
+            .navbar-brand { font-size: .98rem; }
+            .navbar .text-white-50 { display: none; }
+            .container { margin-top: 0 !important; }
+            .card-body { padding: 15px; }
+            .card-header { padding: 12px 15px; }
+            .card-header .param-hint { display: block; margin-left: 0 !important; margin-top: 3px; }
+            #recordControls, .card-body > .d-flex { flex-wrap: wrap; }
+            #recordControls > .text-muted { width: 100%; }
+            #presetType { width: 105px !important; }
+            #presetText + .d-flex button { flex: 1 1 auto; }
+        }
+
+        /* Unified visual language for the original multi-card layout. */
+        :root {
+            --primary: #3157d5;
+            --primary-dark: #2445b4;
+            --accent: #0f766e;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --page-line: #e2e8f0;
+            --page-muted: #64748b;
+            --page-radius: 10px;
+        }
+        body { background: #f5f7fb; color: #172033; }
+        .container { max-width: 1180px; }
+        .glass-card {
+            border-radius: var(--page-radius);
+            border-color: var(--page-line);
+        }
+        .glass-card { background: var(--surface); box-shadow: 0 2px 8px rgba(15,23,42,.045); }
+        .glass-card:hover { box-shadow: 0 4px 14px rgba(15,23,42,.065); }
+        .card-header {
+            min-height: 50px;
+            padding: 13px 16px;
+            color: #263248;
+            background: var(--surface);
+            border-bottom-color: var(--page-line);
+            font-size: .95rem;
+        }
+        .card-header i { color: var(--primary); }
+        .card-body { padding: 16px; }
+        .form-control, .form-select {
+            min-height: 38px;
+            border-color: #cbd5e1;
+            border-radius: 7px;
+            background: #fff;
+            font-size: .86rem;
+        }
+        textarea.form-control { min-height: 0; }
+        .form-control:focus, .form-select:focus {
+            border-color: #7891e7;
+            box-shadow: 0 0 0 3px rgba(49,87,213,.10);
+        }
+        .btn-primary-custom, .btn-danger-custom, .btn-outline-custom {
+            min-height: 38px;
+            border-radius: 7px;
+            font-size: .84rem;
+            line-height: 1.2;
+        }
+        .btn-primary-custom { background: var(--primary); }
+        .btn-primary-custom:hover { background: var(--primary-dark); }
+        .btn-outline-custom { border-color: #b8c4d8; color: var(--primary); }
+        .btn-outline-custom:hover { background: var(--primary); border-color: var(--primary); }
+        .btn-danger-custom { background: #dc4b4b; }
+        .btn-danger-custom:hover { background: #b93838; }
+        .record-btn {
+            min-height: 38px;
+            padding: 8px 16px;
+            border-radius: 7px;
+            font-size: .84rem;
+        }
+        .record-btn.start { background: #dc4b4b; }
+        .record-btn.start:hover { background: #b93838; }
+        .record-btn.stop { background: #64748b; }
+        .record-btn.stop:hover { background: #475569; }
+        .voice-item { border-radius: 7px; border-color: #e4e7f0; background: #fafbff; }
+        .voice-item.active { border-color: #a78bfa; background: #f3f0ff; }
+        .preset-card .card-header i { color: #b45309; }
+        .preset-textarea { min-height: 130px; border-color: #cbd5e1; }
+        .slide-picker { flex:1 1 auto; width:100%; min-width:0; max-width:100%; height:78px; overflow:hidden; padding:6px; border:1px solid #cbd5e1; border-radius:7px; background:#f1f5f9; }
+        .ppt-picker-group { display:flex; flex-direction:column; width:100%; min-width:0; height:100%; }
+        .ppt-picker-title { flex:0 0 14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#475569; font-size:.68rem; font-weight:600; }
+        .ppt-page-track { display:flex; justify-content:flex-start; gap:8px; width:100%; min-width:0; overflow-x:auto; overflow-y:hidden; padding:2px 2px 4px; scrollbar-width:thin; scrollbar-color:#aab8d8 transparent; }
+        .ppt-page-track::-webkit-scrollbar { height:5px; }
+        .ppt-page-track::-webkit-scrollbar-thumb { background:#aab8d8; border-radius:6px; }
+        .slide-picker-item { flex:0 0 auto; width:var(--slide-width,96px); height:54px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; padding:4px; cursor:pointer; scroll-snap-align:start; transition:border-color .15s, box-shadow .15s, transform .15s; }
+        .slide-picker-item:hover, .slide-picker-item:focus { border-color:var(--primary); box-shadow:0 3px 10px rgba(49,87,213,.16); transform:translateY(-1px); outline:none; }
+        .slide-picker-item.active { border-color:var(--primary); box-shadow:0 0 0 2px rgba(49,87,213,.18); }
+        .slide-picker-item img { display:block; width:100%; height:100%; object-fit:contain; background:#f1f5f9; border-radius:3px; }
+        .slide-picker-item span { display:block; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#475569; font-size:.68rem; }
+        .ppt-select-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+        .ppt-select-row label { margin:0; flex:0 0 auto; font-size:.76rem; }
+        .ppt-select-row select { flex:1 1 auto; }
+        /* 手势标签：点一下把 [GESTURE:id] 插到文本框光标处，手感与 PPT 标签一致 */
+        .gesture-select-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+        .gesture-select-row label { margin:0; flex:0 0 auto; font-size:.76rem; }
+        .gesture-tag-row { flex:1 1 auto; display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:6px; border:1px solid #cbd5e1; border-radius:7px; background:#f1f5f9; min-height:34px; }
+        .gesture-tag-row .gesture-tag-item { width:auto; height:auto; padding:4px 10px; font-size:.76rem; }
+        /* 统一卡片内控件的纵向间距 */
+        .card-stack { display:flex; flex-direction:column; gap:12px; }
+        .card-stack > .row { margin-bottom:0 !important; }
+        .card-stack > .row > [class*="col-"] { margin-bottom:0; }
+        .card-stack > * { margin-top:0 !important; margin-bottom:0 !important; }
+        .card-stack .form-label { display:block; margin-bottom:4px; }
+        .card-stack hr { margin:0; }
+        /* 控制台三段分区：区标题把「散落的卡片墙」收成有节奏的功能组 */
+        .console-section { margin-bottom: 22px; }
+        .console-section:last-child { margin-bottom: 0; }
+        .console-section-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+        .console-section-title { font-size:.92rem; font-weight:600; color:#1e293b; letter-spacing:.02em; }
+        .console-section-hint { font-size:.76rem; color:#64748b; }
+        /* 开播卡：主操作区，浅主色描边 + 轻投影，与普通卡片拉开层级 */
+        .connect-card { border-color:#c7d4f5; box-shadow:0 2px 12px rgba(49,87,213,.07); }
+        .connect-card .card-header { color:var(--primary); }
+        /* 左右两列卡片上下边缘对齐（讲授区双列 / 素材区三列通用） */
+        @media (min-width: 992px) {
+            .home-columns { align-items: stretch; }
+            .home-columns > [class*="col-"] { display: flex; flex-direction: column; min-width: 0; }
+            .home-columns .glass-card { flex: 0 0 auto; }
+            .home-columns .fill-card { flex: 1 1 auto; }
+            .home-columns > [class*="col-"] > .glass-card:last-child { margin-bottom: 0; }
+        }
+        #mainStatus { color: var(--page-muted); }
+        #chatWindowLink { white-space: nowrap; }
+        @media (max-width: 575.98px) {
+            .container { padding-left: 12px; padding-right: 12px; }
+            .glass-card { margin-bottom: 12px; }
+            .card-header { min-height: 46px; padding: 11px 13px; }
+            .card-body { padding: 13px; }
+            .slide-picker { height: 72px; padding:5px; }
+            .ppt-picker-title { font-size:.66rem; }
+            .slide-picker-item { height:50px; }
+            .btn-primary-custom, .btn-danger-custom, .btn-outline-custom { min-height: 36px; }
+            #chatWindowLink { width: 100%; }
+        }
+
+        /* ── 提问模式卡片 ── */
+        .quiz-card {
+            border: 1px solid #c7d2fe; border-radius: 10px;
+            background: #eef2ff; padding: 12px 14px; margin-top: 10px;
+        }
+        .quiz-card-head {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.8rem; margin-bottom: 6px;
+        }
+        .quiz-progress { font-weight: 600; color: #4338ca; }
+        .quiz-stage { color: #6b7280; }
+        .quiz-question {
+            font-size: 0.95rem; font-weight: 600; color: #1f2937;
+            margin-bottom: 8px; line-height: 1.5;
+        }
+        .quiz-card textarea.quiz-answer-input {
+            width: 100%; border-radius: 8px; border: 1px solid #cbd5e1;
+            padding: 8px; font-size: 0.88rem; resize: vertical;
+        }
+        .quiz-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .quiz-btn {
+            border: 1px solid #cbd5e1; background: #fff; color: #374151;
+            border-radius: 8px; padding: 5px 14px; font-size: 0.82rem; cursor: pointer;
+        }
+        .quiz-btn.primary { background: #4361ee; border-color: #4361ee; color: #fff; }
+        .quiz-btn.ghost { background: transparent; color: #6b7280; }
+        .quiz-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .quiz-transcript { margin-top: 8px; font-size: 0.82rem; color: #0f766e; }
+        .quiz-result {
+            margin-top: 8px; font-size: 0.85rem; color: #1f2937;
+            background: #f8fafc; border-left: 3px solid #4361ee;
+            padding: 7px 10px; border-radius: 0 6px 6px 0; white-space: pre-wrap;
+        }
+        .quiz-result:empty { display: none; }
+
+        /* 提问弹窗：把 #quizPanelHost 变成全屏模态遮罩（仅在有题目时显示） */
+        #quizPanelHost {
+            position: fixed; inset: 0; z-index: 1050;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(15, 23, 42, 0.55); padding: 16px;
+        }
+        #quizPanelHost.quiz-modal-open { display: flex; }
+        #quizPanelHost .quiz-card {
+            width: min(560px, 94vw); margin: 0;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+            border-radius: 14px; background: #fff; border-color: #e2e8f0;
+        }
+        .quiz-answer-mode-switch {
+            display: inline-flex; gap: 6px; margin-bottom: 10px;
+            background: #f1f5f9; border-radius: 999px; padding: 3px;
+        }
+        .quiz-mode-btn {
+            border: none; background: transparent; color: #475569;
+            border-radius: 999px; padding: 4px 16px; font-size: 0.8rem; cursor: pointer;
+        }
+        .quiz-mode-btn.active { background: #4361ee; color: #fff; }
+        .quiz-voice-hint { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
+
+        /* ── 问答对编辑区 ── */
+        .quiz-pairs { border-top: 1px dashed #c7d2fe; margin-top: 10px; padding-top: 6px; }
+        .quiz-pairs-head { display: flex; align-items: center; gap: 8px; }
+        .quiz-pair-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+        .quiz-pair-row .quiz-pair-question { flex: 3 1 0; min-width: 0; }
+        .quiz-pair-row .quiz-pair-answer { flex: 3 1 0; min-width: 0; }
+        .quiz-pair-row .quiz-pair-slide { flex: 0 0 68px; }
+
+        </style>
+    <link rel="stylesheet" href="/home.css">
+</head>
+<body class="home">
+
+<div id="homeStatusBanner" style="display:none;padding:7px 16px;font-size:0.82rem;background:#fff8ed;color:#92400e;border-bottom:1px solid #fde68a;">
+    <span id="homeStatusText"></span>
+</div>
+
+<div class="hp-bar">
+    <a class="hp-logo" href="/">知课</a>
+    <nav>
+        <a href="#demo">演示</a>
+        <a href="#capabilities">零件</a>
+        <a href="#workflow">三步</a>
+        <a href="#questions">问题</a>
+    </nav>
+    <a href="/settings.html" class="hp-enter" title="配置 AI 接口、人设、TTS 与知识库参数">设置</a>
+    <a href="#console" class="hp-enter">进入工作台</a>
+</div>
+
+<main>
+<div class="hp-col">
+
+    <!-- 首屏 -->
+    <header class="hp-hero">
+        <h1 class="hp-rise" style="--i:0">把一份讲稿，<br>讲成一堂课。</h1>
+        <p class="hp-lede hp-rise" style="--i:1">一个数字人讲师，照着讲稿讲课。翻页、手势、什么时候出题，都写在稿子里。形象、课件、成绩留在本机。</p>
+        <div class="hp-acts hp-rise" style="--i:2">
+            <a class="hp-btn" href="#console">进入工作台</a>
+            <a class="hp-link" href="#demo">看它怎么讲</a>
+        </div>
+    </header>
+
+    <!-- 演示：拖到第 3 页会停 -->
+    <section class="hp-sec" id="demo">
+        <h2 class="hp-rise">讲到第 3 页，它会停</h2>
+        <p class="hp-rise" style="--i:1">题目写在讲稿里，不另开窗口。声音停下、幻灯片冻住，学员答完再往下讲。</p>
+
+        <div class="hp-panel hp-rise" style="--i:2">
+            <div class="hp-stage" data-ui>
+                <div class="hp-stage-bar">
+                    <span id="hpPageNo">第 3 页 / 共 8 页</span>
+                    <span class="hp-flag" id="hpFlag">已停下 · 等人作答</span>
+                </div>
+
+                <div class="hp-slide">
+                    <h3 class="hp-slide-title" id="hpSlideTitle">列表与元组</h3>
+                    <ul class="hp-points" id="hpSlidePoints">
+                        <li>都能按下标取值</li>
+                        <li>都能切片，都能遍历</li>
+                        <li>区别只在可变性</li>
+                    </ul>
+                </div>
+
+                <p class="hp-caption">
+                    <span id="hpCapText">唯一的实质差别是可变性：一个能改，一个不能改。</span><i class="hp-caret"></i>
+                </p>
+
+                <div class="hp-quiz" id="hpQuiz">
+                    <p class="hp-quiz-q">列表和元组，唯一的实质差别是什么？</p>
+                    <div class="hp-opt"><i>A</i><span>占用的内存大小不同</span></div>
+                    <div class="hp-opt is-picked"><i>B</i><span>一个可变，一个不可变</span><span class="hp-tick">已选</span></div>
+                    <div class="hp-opt"><i>C</i><span>能存放的元素类型不同</span></div>
+                    <div class="hp-verdict"><b>正确</b><span>依据：第 3 页第二段</span></div>
+                </div>
+            </div>
+
+            <div class="hp-controls" data-ui>
+                <div class="hp-ctl hp-ctl-wide">
+                    <div class="hp-ctl-row"><label for="hpAt">讲稿位置</label><b id="hpAtOut">第 3 页</b></div>
+                    <input id="hpAt" type="range" min="1" max="8" step="1" value="3" aria-label="讲稿位置，第几页">
+                </div>
+                <div class="hp-ctl"><span>提问点</span><b>第 3 页</b></div>
+                <div class="hp-ctl"><span>手势</span><b>开</b></div>
+                <div class="hp-ctl"><span>语速</span><b>1.0×</b></div>
+                <div class="hp-ctl"><span>判分</span><b>模型</b></div>
+                <div class="hp-ctl"><span>输出</span><b>WebRTC</b></div>
+            </div>
+        </div>
+
+        <p class="hp-hint hp-rise" style="--i:3">拖一下讲稿位置。回到第 3 页它会停，离开就接着讲。</p>
+    </section>
+
+    <!-- 四个零件 -->
+    <section class="hp-sec" id="capabilities">
+        <h2 class="hp-rise">一堂课的四个零件</h2>
+        <p class="hp-rise" style="--i:1">任何一件单独拿出来都不稀奇，接在一起才能连着讲两小时不用人盯。</p>
+
+        <div class="hp-parts">
+            <article class="hp-part hp-rise">
+                <h3>形象与声音</h3>
+                <p>一张正面照片生成形象，口型跟着音频一帧一帧动。声音可以拿一段参考音频克隆，也可以先用默认的。</p>
+                <div class="hp-frag hp-face" data-ui>
+                    <img src="/assets/lecturer.webp" width="132" height="176" alt="生成的形象预览">
+                    <dl>
+                        <dt>面部取景</dt><dd>0.62</dd>
+                        <dt>嘴部幅度</dt><dd>1.4</dd>
+                        <dt>声音</dt><dd>参考音频 · 46 秒</dd>
+                        <dt>手势素材</dt><dd>3 组 · 107 帧</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <article class="hp-part hp-rise">
+                <h3>课件与讲稿</h3>
+                <p>PPT 上传后自动分页转图，讲稿里写 [PPT:N] 就翻到第 N 页。手势写成 [GESTURE:id]，放在句首。</p>
+                <div class="hp-frag hp-script" data-ui>
+                    <pre>[PPT:3]
+这一页我们看列表和元组。
+唯一的实质差别是可变性：
+一个能改，一个不能改。
+<em>[GESTURE:explain]</em>
+所以当你要一份不会被误改的序列，
+元组是更稳的选择。
+<em>[QUIZ:3]</em>
+那么，元组能不能被修改？<span class="hp-cursor"></span></pre>
+                </div>
+            </article>
+
+            <article class="hp-part hp-rise">
+                <h3>课堂互动</h3>
+                <p>讲到第 N 页停下出题，学员翻到那一页才开始计时。答完由模型判分，结果存到本机。</p>
+                <div class="hp-frag hp-verdict-bar" data-ui>
+                    <b>正确</b>
+                    <span>可变性决定能否原地修改，其余差别都是它的推论。</span>
+                    <span>依据：第 3 页第二段。判分用时 1.4 秒，没有卡住视频。</span>
+                    <span>这次作答记入成绩单：第 3 页，正确。</span>
+                </div>
+            </article>
+
+            <article class="hp-part hp-rise">
+                <h3>知识库问答</h3>
+                <p>课程文档传上去就建好索引。学员提问时先查文档再回答，答案带页码和段落号。</p>
+                <div class="hp-frag hp-ask" data-ui>
+                    <p class="q">学员问：什么时候该用元组？</p>
+                    <p class="a">当你希望这份序列在传给别的函数之后不会被改写时。</p>
+                    <p class="src">第 3 页第二段 ·《序列类型》</p>
+                    <p class="q" style="margin-top:16px">学员问：那字典算序列吗？</p>
+                    <p class="a">不算。它按名字取值，不按位置。</p>
+                    <p class="src">第 7 页第一段 ·《集合与字典》</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- 三步 -->
+    <section class="hp-sec" id="workflow">
+        <h2 class="hp-rise">从一张照片到一堂课</h2>
+        <p class="hp-rise" style="--i:1">上一步做出来的东西，下一步直接能用。中间不用导出、转换、上传到别的地方。</p>
+
+        <div class="hp-slip hp-rise" style="--i:2">
+            <h3><span>建形象</span><a class="hp-go" href="/avatar.html" target="_blank">打开 Avatar 生成</a></h3>
+            <div class="hp-rows">
+                <div class="hp-row"><span class="what">拍一张正面照片，肩膀以上入画</span><span class="dots"></span><span class="val">1 分钟</span></div>
+                <div class="hp-row"><span class="what">校准面部取景与嘴部幅度</span><span class="dots"></span><span class="val">3 分钟</span></div>
+                <div class="hp-row"><span class="what">配一段声音，或直接克隆</span><span class="dots"></span><span class="val">2 分钟</span></div>
+            </div>
+
+            <h3><span>备课件</span><a class="hp-go" href="/knowledge-base.html" target="_blank">打开课程知识库</a></h3>
+            <div class="hp-rows">
+                <div class="hp-row"><span class="what">上传 PPTX 或 PDF</span><span class="dots"></span><span class="val">2 分钟</span></div>
+                <div class="hp-row"><span class="what">自动分页转图</span><span class="dots"></span><span class="val">按页数</span></div>
+                <div class="hp-row"><span class="what">讲稿里按页号插标签</span><span class="dots"></span><span class="val">随手</span></div>
+            </div>
+
+            <h3><span>开讲</span><a class="hp-go" href="#console">进入工作台</a></h3>
+            <div class="hp-rows">
+                <div class="hp-row"><span class="what">选形象、选讲稿</span><span class="dots"></span><span class="val">1 分钟</span></div>
+                <div class="hp-row"><span class="what">接一路输出：WebRTC、RTMP 或虚拟摄像头</span><span class="dots"></span><span class="val">1 分钟</span></div>
+                <div class="hp-row"><span class="what">点开始</span><span class="dots"></span><span class="val">之后不用人盯</span></div>
+            </div>
+
+            <div class="hp-total"><span>你手上剩下的</span><b>一堂课 + 一份成绩单</b></div>
+        </div>
+    </section>
+
+    <!-- 问题 -->
+    <section class="hp-sec" id="questions">
+        <h2 class="hp-rise">常见问题</h2>
+
+        <div class="hp-qa hp-rise" style="--i:1">
+            <p><b>一定要我本人的声音吗？</b>可以克隆一段参考音频，也可以先用默认声音试讲一堂，觉得行再换。</p>
+            <p><b>讲稿要写多长？</b>一小时课大约九千字，写成纯文本，标签插在中间。模板在工作台里。</p>
+            <p><b>一张照片够吗？</b>正面、肩膀以上、光线均匀就够。侧脸，或者远景里只占一小块的脸，口型会糊。</p>
+            <p><b>断网还能用吗？</b>推理在本机跑，断网不影响讲课；语音合成默认走在线接口，要完全离线得换成本地引擎。</p>
+            <p><b>学员在手机上能看吗？</b>能。输出是 WebRTC 流，浏览器直接播；也可以推 RTMP，或者走虚拟摄像头进会议软件。</p>
+            <p><b>出题会打断讲课吗？</b>停在那一页，不另开窗口。学员点「继续播放」就往下走，这一次不算没答。</p>
+            <p><b>成绩存在哪里？</b>存在本机，可以导出成表。没有人替你上传到任何地方。</p>
+            <p><b>讲稿里的标签要背吗？</b>不用。工作台的按钮把标签直接插到光标处，你只管写话。</p>
+            <p><b>一节课能插几道题？</b>不限，按页码各插各的。同一页插两道，就按顺序停两次。</p>
+            <p><b>改了讲稿要不要重新生成形象？</b>不用。形象、课件、讲稿是三份独立的东西，改哪份都不牵动另外两份。</p>
+            <p><b>成绩单长什么样？</b>按人、按题列出对错和用时，导出成表就能直接算平时分。</p>
+            <p><b>装在什么机器上？</b>一台带显卡的机器，单机跑，不用另配服务器。</p>
+        </div>
+    </section>
+
+</div>
+<div class="container hp-console" id="console">
+    <div class="hp-console-head">
+        <h2>开始你的一堂课</h2>
+        <p>连接数字人、编辑讲稿、配置提问，开播前的准备都在这里。</p>
+        <div class="hp-status">
+            <span class="session-badge disconnected" id="topStatusBadge"><span class="status-dot off"></span>未连接</span>
+            <span id="topSessionIdDisplay">SID: -</span>
+            <span id="topSpeakingStatus" style="display:none;">🔊 数字人说话中...</span>
+        </div>
+    </div>
+
+    <!-- ① 开播区：每节课都要用，视觉最强，全宽 -->
+    <div class="console-section">
+        <div class="console-section-head">
+            <span class="console-section-title"><i class="bi bi-broadcast me-1"></i>开播</span>
+            <span class="console-section-hint">选好形象与声音，一键连接；连接后可随时插入讲稿或开启提问</span>
+        </div>
+        <div class="row home-columns">
+            <div class="col-12">
+                <div class="glass-card connect-card">
+                    <div class="card-header"><i class="bi bi-broadcast"></i> 数字人连接</div>
+                    <div class="card-body card-stack">
+                        <div class="row g-2 align-items-end mb-3"><div class="col-md-4"><label class="form-label">Avatar ID</label><select class="form-select form-select-sm" id="offerAvatar"><option value="">加载中...</option></select></div><div class="col-md-4"><label class="form-label">参考音频</label><select class="form-select form-select-sm" id="offerRefAudio"><option value="">系统音色</option></select></div><div class="col-md-4"><label class="form-label">参考音频文本</label><input type="text" class="form-control form-control-sm" id="offerRefText" placeholder="参考文本（可选）"></div></div>
+                        <div class="row g-2 align-items-end"><div class="col-md-6"><label class="form-label">连接后显示 PPT</label><select class="form-select form-select-sm" id="offerPpt"><option value="">不指定 PPT</option></select></div><div class="col-md-6"><label class="form-label">连接后播放预设</label><select class="form-select form-select-sm" id="offerPreset"><option value="">不自动播放</option></select></div></div>
+                        <div class="d-flex gap-2 align-items-center flex-wrap"><button class="btn-primary-custom" id="btnStart" onclick="start()"><i class="bi bi-play-fill"></i>开始连接</button><button class="btn-danger-custom" id="btnStop" onclick="stop()" style="display:none;"><i class="bi bi-stop-fill"></i>断开连接</button><span class="session-badge disconnected" id="statusBadge"><span class="status-dot off"></span>未连接</span><span class="text-muted small" id="sessionIdDisplay">SID: -</span><span class="small text-muted" id="mainStatus">等待连接数字人</span><a id="chatWindowLink" href="#" target="_blank" class="small-link" style="display:none;">打开数字人窗口</a></div>
+                        <div class="small text-muted mt-2"><span id="previewState">未连接</span><span class="mx-1">·</span><span id="previewAvatarName">未选择数字人</span><span id="speakingStatus" style="display:none;color:#f59e0b;"><i class="bi bi-volume-up-fill"></i>播报中</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ② 讲授区：讲稿与提问，每节课都要配 -->
+    <div class="console-section">
+        <div class="console-section-head">
+            <span class="console-section-title"><i class="bi bi-journal-text me-1"></i>讲授</span>
+            <span class="console-section-hint">讲稿按 PPT 页面插入标签，提问模式在指定页码停下等学员作答</span>
+        </div>
+        <div class="row home-columns">
+            <div class="col-lg-7">
+                <div class="glass-card preset-card fill-card"><div class="card-header"><i class="bi bi-pencil-square"></i>预设文本<span class="param-hint ms-2">选择 PPT 页面插入标签</span></div><div class="card-body card-stack"><div class="ppt-select-row"><label for="tagPptSelect">选择 PPT</label><select class="form-select form-select-sm" id="tagPptSelect" onchange="renderSelectedPptTags()"><option value="">正在加载 PPT...</option></select></div><div class="slide-picker" id="slideTagButtons"><span class="text-muted small">正在加载 PPT...</span></div><div class="gesture-select-row"><label>插入手势</label><div class="gesture-tag-row" id="gestureTagButtons"><span class="text-muted small">正在加载手势...</span></div></div><textarea class="form-control preset-textarea" id="presetText" rows="5" autocomplete="off" placeholder="选择上方 PPT 页面或手势，在当前位置插入对应标签。"></textarea><div class="d-flex gap-2 mt-2 align-items-center flex-wrap"><input class="form-control form-control-sm" id="presetName" style="max-width:180px;" placeholder="预设名称，如：课程开场"><select class="form-select form-select-sm" id="presetSavedList" style="max-width:220px;" onchange="loadSavedPreset()"><option value="">选择已保存文本</option></select><button class="btn-outline-custom btn-sm" onclick="savePresetText()"><i class="bi bi-bookmark-plus"></i>保存文本</button><button class="btn-outline-custom btn-sm" onclick="deleteSavedPreset()"><i class="bi bi-trash"></i>删除文本</button></div><div class="d-flex gap-2 mt-2 align-items-center"><select class="form-select form-select-sm" style="width:120px;" id="presetType"><option value="echo" selected>Echo 复读</option><option value="chat">Chat LLM</option></select><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="presetInterrupt" checked><label class="form-check-label small">打断</label></div><button class="btn-primary-custom btn-sm ms-auto" onclick="sendPreset()"><i class="bi bi-play-circle"></i>播报预设文本</button><button class="btn-outline-custom btn-sm" onclick="interrupt()"><i class="bi bi-stop-circle"></i>打断</button><button class="btn-outline-custom btn-sm" onclick="clearPreset()"><i class="bi bi-trash"></i>清空</button></div></div></div>
+            </div>
+
+        <div class="col-lg-5">
+            <div class="glass-card quiz-config-card fill-card">
+                <div class="card-header"><i class="bi bi-patch-question"></i>提问模式<span class="param-hint ms-2">讲课时在提问点停下等学员作答</span></div>
+                <div class="card-body card-stack">
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="quizEnabled" onchange="onQuizToggle(this)">
+                            <label class="form-check-label small">启用提问模式</label>
+                        </div>
+                        <label class="small mb-0">数量<input type="number" class="form-control form-control-sm d-inline-block ms-1" id="quizCount" min="1" max="20" value="3" style="width:72px;"></label>
+                        <label class="small mb-0">方式<select class="form-select form-select-sm d-inline-block ms-1" id="quizMode" style="width:118px;"><option value="random" selected>随机抽取</option><option value="interval">固定间隔</option></select></label>
+                        <label class="small mb-0">页码范围<input type="text" class="form-control form-control-sm d-inline-block ms-1" id="quizSlideRange" placeholder="如 1-8" style="width:96px;"></label>
+                        <button class="btn-primary-custom btn-sm ms-auto" onclick="startQuizLecture()"><i class="bi bi-play-circle"></i>开始提问式讲课</button>
+                        <button class="btn-outline-custom btn-sm" onclick="stopQuizMode()"><i class="bi bi-x-circle"></i>退出提问模式</button>
+                    </div>
+                    <div class="quiz-pairs">
+                        <div class="quiz-pairs-head">
+                            <span class="small fw-semibold">问答对</span>
+                            <span class="param-hint">填了就按这几题提问，不需要题库；页码可留空（留空则按上方方式决定问在第几页）</span>
+                            <button class="btn-outline-custom btn-sm ms-auto" id="quizGeneratePairsBtn" onclick="generateQuizPairs()"><i class="bi bi-stars"></i>根据预设文本生成</button>
+                            <button class="btn-outline-custom btn-sm" onclick="addQuizPair()"><i class="bi bi-plus-lg"></i>添加一对</button>
+                        </div>
+                        <div id="quizPairList"></div>
+                    </div>
+                    <div class="small text-muted" id="quizConfigStatus">未连接数字人也能先把问答对/参数填好（会自动保存在本机）：此时点「开始提问式讲课」只是登记待启动，展示页一连上就会自动开始。未启用时按普通模式连续讲授；填了问答对就直接问这几题（讲稿可留空，变成纯提问）；不填则按上方「预设文本」的 [PPT:N] 讲稿，并从题库按数量抽取。</div>
+                    <!-- 提问卡片由 quiz-panel.js 动态创建；未启用时这里为空，DOM 中不存在卡片 -->
+                    <div id="quizPanelHost"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class="hp-col">
+    <footer class="hp-foot">
+        <span class="hp-logo hp-rise">知课</span>
+        <p class="note hp-rise" style="--i:1">微课数字人，本地部署。形象、课件、讲稿、成绩都留在这一台机器上。</p>
+        <p class="hp-foot-links hp-rise" style="--i:2">
+            <a href="/avatar.html" target="_blank">Avatar 生成</a>
+            <a href="/knowledge-base.html" target="_blank">课程知识库</a>
+            <a href="/admin.html" target="_blank">管理后台</a>
+            <a href="/settings.html">接口与参数设置</a>
+        </p>
+    </footer>
+</div>
+</main>
+
+
+<video id="video" autoplay playsinline style="display:none;"></video>
+<div id="videoPlaceholder" style="display:none;"></div>
+<span id="activeVoiceSummary" style="display:none;">系统音色</span>
+<audio id="audio" autoplay playsinline style="display:none;"></audio>
+
+<script src="/quiz-panel.js"></script>
+<script src="/gesture-tags.js"></script>
+<script>
+let pc = null;
+let sessionid = null;
+let chatWindowUrl = null;
+let chatWindow = null;
+let speakPollTimer = null;
+// 连接链路的超时上限与在途标记。两者都是为了"任何一步卡住都要落到终态"：
+// 没有超时的等待会让页面永远停在"连接中"，用户只能看到什么都没发生。
+const CONNECT_LIMITS = { iceMs: 3000, offerMs: 15000 };
+let _offerAbort = null;
+let _connectInFlight = false;
+
+function updateStatus(connected) {
+    const badge = document.getElementById('statusBadge');
+    const topBadge = document.getElementById('topStatusBadge');
+    const previewState = document.getElementById('previewState');
+    if (connected) {
+        badge.className = 'session-badge connected';
+        badge.innerHTML = '<span class="status-dot on"></span>已连接';
+        topBadge.className = 'session-badge connected';
+        topBadge.innerHTML = '<span class="status-dot on"></span>已连接';
+        if (previewState) previewState.textContent = '已连接';
+        document.getElementById('mainStatus').textContent = '数字人已连接，可以开始播报';
+    } else {
+        badge.className = 'session-badge disconnected';
+        badge.innerHTML = '<span class="status-dot off"></span>未连接';
+        topBadge.className = 'session-badge disconnected';
+        topBadge.innerHTML = '<span class="status-dot off"></span>未连接';
+        if (previewState) previewState.textContent = '未连接';
+        document.getElementById('mainStatus').textContent = '等待连接数字人';
+        document.getElementById('speakingStatus').style.display = 'none';
+        if (speakPollTimer) { clearInterval(speakPollTimer); speakPollTimer = null; }
+    }
+}
+
+function setSessionId(sid) {
+    sessionid = sid;
+    document.getElementById('sessionIdDisplay').textContent = 'SID: ' + (sid || '-');
+    document.getElementById('topSessionIdDisplay').textContent = 'SID: ' + (sid || '-');
+}
+
+// ─── WebRTC ────────────────────────────────────────────────
+function setMainStatus(text) {
+    const el = document.getElementById('mainStatus');
+    if (el) { el.textContent = text; }
+}
+
+// ICE 候选收集等待**必须**带超时：状态一旦不推进（浏览器侧/网络侧），
+// 只等 'complete' 的 Promise 永不 resolve，后面的 /offer 就永远发不出去——
+// 现象正是"点了开始连接什么都没发生"。到点用已收集的候选继续即可。
+function waitIceGathering(peer, ms) {
+    return new Promise(function (resolve) {
+        if (peer.iceGatheringState === 'complete') { resolve('complete'); return; }
+        let done = false;
+        let timer = null;
+        function finish(reason) {
+            if (done) { return; }
+            done = true;
+            if (timer) { clearTimeout(timer); }
+            peer.removeEventListener('icegatheringstatechange', check);
+            resolve(reason);
+        }
+        function check() {
+            if (peer.iceGatheringState === 'complete') { finish('complete'); }
+        }
+        timer = setTimeout(function () { finish('timeout'); }, ms);
+        peer.addEventListener('icegatheringstatechange', check);
+    });
+}
+
+// 信令请求必须有超时与可读错误：服务端假死时请求会一直挂着，
+// 页面既不报错也不恢复。
+function postOffer(body) {
+    const controller = new AbortController();
+    _offerAbort = controller;
+    const timer = setTimeout(function () {
+        try { controller.abort(); } catch (e) { /* 已结束 */ }
+    }, CONNECT_LIMITS.offerMs);
+    return fetch('/offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+    }).then(function (response) {
+        clearTimeout(timer);
+        _offerAbort = null;
+        if (!response.ok) {
+            return response.text().then(function (text) {
+                const snippet = (text || '').replace(/\s+/g, ' ').slice(0, 120);
+                throw new Error('服务端返回 ' + response.status + (snippet ? '：' + snippet : ''));
+            });
+        }
+        return response.json();
+    }).then(function (answer) {
+        if (!answer || !answer.sdp || !answer.type) {
+            throw new Error('信令响应异常：缺少 sdp/type');
+        }
+        return answer;
+    }).catch(function (err) {
+        clearTimeout(timer);
+        _offerAbort = null;
+        if (err && err.name === 'AbortError') {
+            throw new Error('信令请求超时（' + Math.round(CONNECT_LIMITS.offerMs / 1000) + 's 无响应）');
+        }
+        throw err;
+    });
+}
+
+function negotiate(peer) {
+    peer.addTransceiver('video', { direction: 'recvonly' });
+    peer.addTransceiver('audio', { direction: 'recvonly' });
+    return peer.createOffer().then(function (offer) {
+        return peer.setLocalDescription(offer);
+    }).then(function () {
+        return waitIceGathering(peer, CONNECT_LIMITS.iceMs);
+    }).then(function (reason) {
+        if (reason === 'timeout') {
+            console.warn('[RTC] ICE 收集超时，使用已收集候选继续');
+        }
+        // 连接已被重置/被新一次连接取代：旧链必须立刻退出，
+        // 否则会把旧 SDP 写进新的 PeerConnection，新连接直接坏掉。
+        if (peer !== pc || !peer.localDescription) {
+            throw new Error('连接已被重置');
+        }
+        const offer = peer.localDescription;
+        const body = {
+            sdp: offer.sdp,
+            type: offer.type,
+            avatar: document.getElementById('offerAvatar').value || undefined,
+            refaudio: document.getElementById('offerRefAudio').value || undefined,
+            reftext: document.getElementById('offerRefText').value || undefined,
+            ppt_id: document.getElementById('offerPpt').value || undefined,
+            preset_name: document.getElementById('offerPreset').value || undefined,
+        };
+        setMainStatus('正在请求服务端建立会话…');
+        return postOffer(body);
+    }).then(function (answer) {
+        if (peer !== pc) { throw new Error('连接已被重置'); }
+        if (answer.sessionid) {
+            setSessionId(answer.sessionid);
+            // 保存到 localStorage 供 knowtalk-chat.html 使用
+            localStorage.setItem('knowtalk_sessionid', answer.sessionid);
+        }
+        return peer.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answer.sdp }));
+    }).then(function () {
+        if (peer !== pc) { return; }
+        _connectInFlight = false;
+        document.getElementById('previewAvatarName').textContent = document.getElementById('offerAvatar').selectedOptions[0]?.textContent || '数字人';
+        document.getElementById('activeVoiceSummary').textContent = document.getElementById('offerRefAudio').value || '系统音色';
+        document.getElementById('videoPlaceholder').style.display = 'none';
+        setMainStatus('连接成功，可以开始播报');
+        loadSlideTags();
+
+        // 连接成功后打开真实聊天地址，不再先打开 about:blank 临时页。
+        chatWindowUrl = '/knowtalk-chat.html?sessionid=' + encodeURIComponent(sessionid || '0');
+        const avatarId = document.getElementById('offerAvatar').value || '';
+        const refAudio = document.getElementById('offerRefAudio').value || '';
+        if (avatarId) chatWindowUrl += '&avatar_id=' + encodeURIComponent(avatarId);
+        if (refAudio) chatWindowUrl += '&refaudio=' + encodeURIComponent(refAudio);
+        const pptId = document.getElementById('offerPpt').value || '';
+        const presetName = document.getElementById('offerPreset').value || '';
+        if (pptId) chatWindowUrl += '&ppt_id=' + encodeURIComponent(pptId);
+        if (presetName) chatWindowUrl += '&preset=' + encodeURIComponent(presetName);
+        // 课程 ID 原由首页「课程知识库」卡输入；该卡已随素材准备区一并移除，
+        // 课程选择改由展示页（knowtalk-chat）的课程下拉与知识库页管理。
+        const chatLink = document.getElementById('chatWindowLink');
+        chatLink.href = chatWindowUrl;
+        chatLink.style.display = '';
+        chatWindow = window.open(chatWindowUrl, '_blank');
+        if (chatWindow && !chatWindow.closed) chatWindow.focus();
+    });
+}
+
+// 清理连接相关的一切，回到"可以重新开始"的干净状态。
+// 断开→再连接连不上的另一半原因就是这里没清干净：旧 PeerConnection、
+// 在途请求、上一次打开的展示页窗口都会残留。
+function resetConnection() {
+    _connectInFlight = false;
+    if (_offerAbort) {
+        try { _offerAbort.abort(); } catch (e) { /* 已结束 */ }
+        _offerAbort = null;
+    }
+    if (pc) {
+        try { pc.close(); } catch (e) { /* 已关闭 */ }
+        pc = null;
+    }
+}
+
+function start() {
+    if (_connectInFlight) {
+        setMainStatus('上一次连接仍在进行中…');
+        return;
+    }
+    resetConnection();
+    const config = { sdpSemantics: 'unified-plan' };
+    if (document.getElementById('use-stun')?.checked) {
+        config.iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+    }
+    pc = new RTCPeerConnection(config);
+    // 回调里用局部引用：重连时 pc 会被替换/置空，闭包里读全局 pc 会串到新连接上。
+    const peer = pc;
+    _connectInFlight = true;
+    peer.addEventListener('track', function(event) {
+        if (peer !== pc) { return; }
+        if (event.track.kind === 'video') {
+            document.getElementById('video').srcObject = event.streams[0];
+        } else {
+            const audio = document.getElementById('audio');
+            audio.srcObject = event.streams[0];
+            audio.play().catch(function() {});
+        }
+    });
+    peer.addEventListener('connectionstatechange', function() {
+        if (peer !== pc) { return; }
+        if (peer.connectionState === 'connected') updateStatus(true);
+        else if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') { updateStatus(false); setSessionId(null); }
+    });
+    document.getElementById('btnStart').style.display = 'none';
+    document.getElementById('btnStop').style.display = 'inline-block';
+    setMainStatus('正在连接数字人…');
+    negotiate(peer).catch(function(e) {
+        _connectInFlight = false;
+        // 已被新一轮连接取代：旧链的失败不得改写当前状态
+        if (peer !== pc) { return; }
+        console.error('Negotiation error:', e);
+        const message = (e && e.message) ? e.message : String(e);
+        setMainStatus('连接失败：' + message);
+        updateStatus(false);
+        // 回到可重试状态，不弹窗打断（失败原因已经写在状态条上）
+        document.getElementById('btnStart').style.display = 'inline-block';
+        document.getElementById('btnStop').style.display = 'none';
+        resetConnection();
+    });
+}
+
+function stop() {
+    resetConnection();
+    stopSpeakPolling();
+    chatWindowUrl = null;
+    // 关掉上一次打开的展示页：否则它仍连着服务端，旧会话的渲染线程不会释放，
+    // 再次连接时新旧两个会话抢同一份模型资源。
+    if (chatWindow && !chatWindow.closed) {
+        try { chatWindow.close(); } catch (e) { /* 已关闭 */ }
+    }
+    chatWindow = null;
+    document.getElementById('chatWindowLink').style.display = 'none';
+    updateStatus(false);
+    setSessionId(null);
+    document.getElementById('video').srcObject = null;
+    document.getElementById('videoPlaceholder').style.display = '';
+    document.getElementById('previewAvatarName').textContent = '未选择数字人';
+    document.getElementById('btnStart').style.display = 'inline-block';
+    document.getElementById('btnStop').style.display = 'none';
+    setMainStatus('已断开连接');
+}
+
+// ─── Avatar 列表加载 ────────────────────────────────────
+function loadAvatarList() {
+    fetch('/api/avatars').then(r => r.json()).then(function(d) {
+        if (d.code !== 0) return;
+        var sel = document.getElementById('offerAvatar');
+        sel.innerHTML = '';
+        d.data.filter(function(a) { return a.ready !== false; }).forEach(function(a) {
+            sel.innerHTML += '<option value="' + a.id + '">' + escapeHtml(a.name) + '</option>';
+        });
+        if (d.data.length === 0) {
+            sel.innerHTML = '<option value="">无可用形象</option>';
+        }
+        // 形象的可用手势随形象而变：重建下拉后必须重新取一次
+        loadGestureTags();
+    });
+}
+
+function loadVoiceOptions() {
+    fetch('/api/voices').then(r => r.json()).then(function(d) {
+        if (!d || d.code !== 0) return;
+        var sel = document.getElementById('offerRefAudio');
+        sel.innerHTML = '<option value="">系统音色</option>';
+        (d.data || []).forEach(function(v) {
+            var option = document.createElement('option');
+            option.value = v.path;
+            option.textContent = v.name;
+            sel.appendChild(option);
+        });
+    }).catch(function() {});
+}
+
+function loadPptOptions() {
+    fetch('/api/slides').then(r => r.json()).then(function(d) {
+        if (!d || d.code !== 0) return;
+        var sel = document.getElementById('offerPpt');
+        sel.innerHTML = '<option value="">不指定 PPT</option>';
+        groupSlides(d.data || []).forEach(function(group) {
+            var option = document.createElement('option');
+            option.value = group.slides[0].id;
+            option.textContent = group.name + '（' + group.slides.length + '页）';
+            sel.appendChild(option);
+        });
+    }).catch(function() {});
+}
+
+function groupSlides(slides) {
+    var groups = {};
+    (slides || []).forEach(function(slide) {
+        var key = (slide.ppt_id && slide.ppt_id !== 'single') ? slide.ppt_id : ((slide.image || '').match(/^(.*)_page_\d+\.[^.]+$/) || [])[1] || ('slide-' + slide.id);
+        var fallbackName = key.split('/').pop().replace(/_page_\d+$/, '');
+        if (!groups[key]) groups[key] = { id: key, name: slide.ppt_name || fallbackName, slides: [] };
+        groups[key].slides.push(slide);
+    });
+    return Object.keys(groups).map(function(key) { return groups[key]; });
+}
+
+// ─── Preset Text ────────────────────────────────────────────
+let _sendingPreset = false;
+function clearPreset() {
+    console.log('clearPreset called');
+    document.getElementById('presetText').value = '';
+}
+function getSavedPresets() {
+    try { return JSON.parse(localStorage.getItem('zhike_presets') || '{}'); } catch (e) { return {}; }
+}
+function refreshSavedPresets() {
+    var select = document.getElementById('presetSavedList');
+    if (!select) return;
+    var presets = getSavedPresets();
+    select.innerHTML = '<option value="">选择已保存文本</option>';
+    Object.keys(presets).sort().forEach(function(name) {
+        var option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+    });
+    var offerPreset = document.getElementById('offerPreset');
+    if (offerPreset) {
+        offerPreset.innerHTML = '<option value="">不自动播放</option>';
+        Object.keys(presets).sort().forEach(function(name) {
+            var option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            offerPreset.appendChild(option);
+        });
+    }
+}
+function savePresetText() {
+    var name = document.getElementById('presetName').value.trim();
+    var text = document.getElementById('presetText').value.trim();
+    if (!name || !text) return alert('请填写预设名称和文本');
+    var presets = getSavedPresets();
+    presets[name] = text;
+    localStorage.setItem('zhike_presets', JSON.stringify(presets));
+    refreshSavedPresets();
+    document.getElementById('presetSavedList').value = name;
+}
+function loadSavedPreset() {
+    var name = document.getElementById('presetSavedList').value;
+    if (!name) return;
+    var presets = getSavedPresets();
+    document.getElementById('presetName').value = name;
+    document.getElementById('presetText').value = presets[name] || '';
+}
+function deleteSavedPreset() {
+    var select = document.getElementById('presetSavedList');
+    var name = select.value;
+    if (!name) return alert('请先选择要删除的文本');
+    if (!confirm('确定删除预设文本“' + name + '”吗？')) return;
+    var presets = getSavedPresets();
+    delete presets[name];
+    localStorage.setItem('zhike_presets', JSON.stringify(presets));
+    refreshSavedPresets();
+    document.getElementById('presetName').value = '';
+}
+function sendPreset() {
+    if (_sendingPreset) return;
+    const text = document.getElementById('presetText').value.trim();
+    const type = document.getElementById('presetType').value;
+    const interrupt = document.getElementById('presetInterrupt').checked;
+    if (!text || !sessionid) return alert('请先连接 WebRTC');
+
+    var btn = document.querySelector('#presetText').closest('.card-body').querySelector('.btn-primary-custom');
+    var origHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> 发送中...';
+    btn.disabled = true;
+    _sendingPreset = true;
+    console.log('[sendPreset] 发送文本, sessionid=' + sessionid + ', text=' + text.substring(0, 50));
+    var body = { text: text, type: type, interrupt: interrupt, sessionid: String(sessionid) };
+    // 如果有自定义声音，附加 tts 参数
+    if (currentVoiceFile) {
+        body.tts = { ref_file: currentVoiceFile, ref_text: currentVoiceText || '' };
+    }
+    fetch('/human', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        console.log('[sendPreset] 响应:', d);
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+        _sendingPreset = false;
+        if (d.code === 0) {
+            var statusEl = document.getElementById('mainStatus');
+            statusEl.textContent = '播报已发送，请在数字人窗口查看';
+            statusEl.style.color = '#10b981';
+            // 开始轮询说话状态
+            startSpeakPolling();
+            setTimeout(function() { statusEl.textContent = ''; }, 3000);
+        } else {
+            var statusEl2 = document.getElementById('mainStatus');
+            statusEl2.textContent = '发送失败: ' + (d.msg || '未知错误');
+            statusEl2.style.color = '#ef4444';
+            setTimeout(function() { statusEl2.textContent = ''; }, 3000);
+        }
+    }).catch(function(e) {
+        console.error('[sendPreset] 错误:', e);
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+        _sendingPreset = false;
+        var statusEl3 = document.getElementById('mainStatus');
+        statusEl3.textContent = '网络错误: ' + e.message;
+        statusEl3.style.color = '#ef4444';
+        setTimeout(function() { statusEl3.textContent = ''; }, 3000);
+    });
+}
+
+// ─── 实时说话状态轮询 ─────────────────────────────────────
+function startSpeakPolling() {
+    if (speakPollTimer) stopSpeakPolling();
+    var wasSpeaking = false;
+    var startedAt = Date.now();
+    speakPollTimer = setInterval(function() {
+        if (!sessionid) { stopSpeakPolling(); return; }
+        fetch('/is_speaking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionid: String(sessionid) }),
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            var speaking = d.data;
+            var el = document.getElementById('speakingStatus');
+            if (speaking) {
+                el.style.display = '';
+                if (!wasSpeaking) {
+                    document.getElementById('mainStatus').textContent = '数字人正在说话...';
+                    document.getElementById('mainStatus').style.color = '#f59e0b';
+                }
+                wasSpeaking = true;
+            } else {
+                el.style.display = 'none';
+                // 请求刚入队时可能还没开始合成，不能在第一次 false 时停止轮询。
+                if (wasSpeaking) {
+                    document.getElementById('mainStatus').textContent = '播报完成';
+                    document.getElementById('mainStatus').style.color = '#10b981';
+                    setTimeout(function() { document.getElementById('mainStatus').textContent = ''; }, 2000);
+                    wasSpeaking = false;
+                    stopSpeakPolling();
+                } else if (Date.now() - startedAt > 120000) {
+                    stopSpeakPolling();
+                }
+            }
+        }).catch(function() { stopSpeakPolling(); });
+    }, 500);
+}
+
+function stopSpeakPolling() {
+    if (speakPollTimer) {
+        clearInterval(speakPollTimer);
+        speakPollTimer = null;
+    }
+    document.getElementById('speakingStatus').style.display = 'none';
+}
+
+// ─── Text ──────────────────────────────────────────────────
+function sendText() {
+    const text = document.getElementById('txtMessage').value;
+    const type = document.getElementById('txtType').value;
+    if (!text || !sessionid) return alert('请先连接 WebRTC');
+
+    var body = { text: text, type: type, interrupt: true, sessionid: String(sessionid) };
+    if (currentVoiceFile) {
+        body.tts = { ref_file: currentVoiceFile, ref_text: currentVoiceText || '' };
+    }
+    fetch('/human', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    }).then(r => r.json()).then(d => {
+        console.log('human:', d);
+        document.getElementById('txtMessage').value = '';
+        if (d.code === 0) startSpeakPolling();
+    });
+}
+
+// ─── Audio Upload ──────────────────────────────────────────
+function uploadAudio() {
+    const file = document.getElementById('audioFile').files[0];
+    if (!file || !sessionid) return alert('请先连接 WebRTC 并选择音频文件');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('sessionid', String(sessionid));
+    fetch('/humanaudio', { method: 'POST', body: formData }).then(r => r.json()).then(d => console.log('humanaudio:', d));
+}
+
+// ─── Interrupt ─────────────────────────────────────────────
+function interrupt() {
+    if (!sessionid) return;
+    stopSpeakPolling();
+    document.getElementById('mainStatus').textContent = '已打断';
+    document.getElementById('mainStatus').style.color = '#f59e0b';
+    setTimeout(function() { document.getElementById('mainStatus').textContent = ''; }, 2000);
+    fetch('/interrupt_talk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionid: String(sessionid) }),
+    }).then(r => r.json()).then(d => console.log('interrupt:', d));
+}
+
+// ─── Recording ─────────────────────────────────────────────
+let recording = false;
+function toggleRecord() {
+    if (!sessionid) return alert('请先连接 WebRTC');
+    const btn = document.getElementById('btnRecToggle');
+    const type = recording ? 'end_record' : 'start_record';
+    fetch('/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, sessionid: String(sessionid) }),
+    }).then(r => r.json()).then(d => {
+        console.log(type + ':', d);
+        recording = !recording;
+        if (recording) {
+            btn.className = 'btn-danger-custom btn-sm';
+            btn.innerHTML = '<i class="bi bi-stop-circle"></i> 停止录制';
+            document.getElementById('btnDownload').disabled = true;
+        } else {
+            btn.className = 'btn-outline-custom btn-sm';
+            btn.innerHTML = '<i class="bi bi-record-circle"></i> 开始录制';
+            document.getElementById('btnDownload').disabled = false;
+        }
+    });
+}
+function downloadRecord() {
+    if (!sessionid) return;
+    window.open('/record/' + sessionid, '_blank');
+}
+
+// ─── Audiotype ─────────────────────────────────────────────
+function setAudiotype() {
+    if (!sessionid) return alert('请先连接 WebRTC');
+    const val = parseInt(document.getElementById('audiotypeVal').value) || 0;
+    fetch('/set_audiotype', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audiotype: val, sessionid: String(sessionid) }),
+    }).then(r => r.json()).then(d => console.log('set_audiotype:', d));
+}
+
+// ─── 手势标签按钮（用于预设文本快速插入）─────────────────
+// 手势列表来自 GET /api/avatars/{avatar_id}/gestures，随「Avatar ID」下拉变化刷新。
+let _gestureTagBar = null;
+function gestureTagBar() {
+    if (!_gestureTagBar) {
+        _gestureTagBar = GestureTags.createGestureTagBar({
+            document: document,
+            container: document.getElementById('gestureTagButtons'),
+            request: function(url) { return fetch(url).then(r => r.json()); },
+            getAvatarId: function() { return document.getElementById('offerAvatar').value || ''; },
+            getTextarea: function() { return document.getElementById('presetText'); },
+        });
+    }
+    return _gestureTagBar;
+}
+
+function loadGestureTags() {
+    gestureTagBar().refresh().catch(function() {});
+}
+
+// ─── 幻灯片标签按钮（用于预设文本快速插入）─────────────────
+let _tagClickTimer = null;
+let _pptGroups = [];
+function loadSlideTags() {
+    fetch('/api/slides').then(r => r.json()).then(function(d) {
+        if (d.code !== 0) return;
+        var slides = d.data;
+        var container = document.getElementById('slideTagButtons');
+        if (slides.length === 0) {
+            container.innerHTML = '<span class="text-muted small">请先上传素材</span>';
+            return;
+        }
+        _pptGroups = groupSlides(slides);
+        var selector = document.getElementById('tagPptSelect');
+        if (!selector) {
+            selector = document.createElement('select');
+            selector.id = 'tagPptSelect';
+            selector.className = 'form-select form-select-sm mb-2';
+            selector.setAttribute('aria-label', '选择 PPT');
+            selector.addEventListener('change', renderSelectedPptTags);
+            container.parentElement.insertBefore(selector, container);
+        }
+        selector.innerHTML = _pptGroups.map(function(group, index) {
+            return '<option value="' + index + '">' + escapeHtml(group.name) + '（' + group.slides.length + '页）</option>';
+        }).join('');
+        selector.style.display = '';
+        renderSelectedPptTags();
+    });
+}
+
+function renderSelectedPptTags() {
+    var container = document.getElementById('slideTagButtons');
+    if (!container || !_pptGroups.length) return;
+    var selector = document.getElementById('tagPptSelect');
+    var group = _pptGroups[selector ? Number(selector.value) || 0 : 0];
+    if (!group) return;
+    var html = '<div class="ppt-picker-group">'
+        + '<div class="ppt-picker-title" title="' + escapeHtml(group.name) + '">' + escapeHtml(group.name) + '</div>'
+        + '<div class="ppt-page-track">';
+    group.slides.forEach(function(s, idx) {
+        var displayName = s.name || '第' + (idx + 1) + '页';
+        var image = s.image || '';
+        if (image && !image.startsWith('/') && !image.startsWith('http')) image = '/' + image;
+        html += '<button type="button" class="slide-picker-item" onclick="insertSlideTag(this,' + s.id + ')" title="点击插入 [PPT:' + s.id + ']">'
+            + (image ? '<img src="' + image + '" alt="" onload="fitSlideThumb(this)">' : '<span style="height:52px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;">PPT</span>')
+            + '<span>' + escapeHtml(displayName) + '</span></button>';
+    });
+    html += '</div></div>';
+    container.innerHTML = html;
+    var availableWidth = container.parentElement.clientWidth;
+    var desiredWidth = Math.min(availableWidth, Math.max(240, group.slides.length * 108 + 24));
+    container.style.width = desiredWidth + 'px';
+    container.querySelectorAll('.ppt-page-track').forEach(function(track) {
+        track.classList.toggle('is-overflowing', track.scrollWidth > track.clientWidth);
+    });
+}
+
+function insertSlideTag(button, slideId) {
+    document.querySelectorAll('.slide-picker-item').forEach(function(item) { item.classList.remove('active'); });
+    button.classList.add('active');
+    insertTag(slideId);
+}
+
+function fitSlideThumb(image) {
+    if (!image.naturalWidth || !image.naturalHeight) return;
+    var width = Math.round(46 * image.naturalWidth / image.naturalHeight + 8);
+    image.parentElement.style.setProperty('--slide-width', Math.max(72, Math.min(160, width)) + 'px');
+}
+
+function handleTagClick(e, slideId, displayName) {
+    if (_tagClickTimer) {
+        // 双击：只改名，不插入
+        clearTimeout(_tagClickTimer);
+        _tagClickTimer = null;
+        renameTagDialog(slideId, displayName);
+        return;
+    }
+    // 单击：延迟执行插入，等待可能的双击
+    _tagClickTimer = setTimeout(function() {
+        _tagClickTimer = null;
+        insertTag(slideId);
+    }, 300);
+}
+
+function renameTagDialog(slideId, oldName) {
+    var newName = prompt('修改标签名称：', oldName);
+    if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
+    fetch('/api/slides/' + slideId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName.trim() })
+    }).then(r => r.json()).then(function() {
+        loadSlideTags();
+    });
+}
+
+function insertTag(slideId) {
+    var ta = document.getElementById('presetText');
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+    var tag = '[PPT:' + slideId + '] ';
+    ta.value = ta.value.substring(0, start) + tag + ta.value.substring(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + tag.length;
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ─── 声音克隆 ────────────────────────────────────────────────
+var currentVoiceFile = '';
+var currentVoiceText = '';
+var currentVoiceEngine = '';
+
+function uploadVoice() {
+    var file = document.getElementById('voiceFile').files[0];
+    if (!file) return alert('请选择音频文件');
+    var name = document.getElementById('voiceName').value.trim() || file.name.replace(/\.[^.]+$/, '');
+    var refText = document.getElementById('voiceRefText').value.trim();
+
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', name);
+
+    var statusEl = document.getElementById('voiceStatus');
+    statusEl.textContent = '上传中...';
+    statusEl.className = 'voice-status inactive';
+
+    fetch('/api/voice/upload', { method: 'POST', body: formData })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.code === 0) {
+                statusEl.textContent = '上传成功: ' + name;
+                statusEl.className = 'voice-status active';
+                document.getElementById('voiceName').value = '';
+                document.getElementById('voiceRefText').value = '';
+                document.getElementById('voiceFile').value = '';
+
+                // 自动应用
+                currentVoiceFile = d.data.path;
+                currentVoiceText = refText;
+                applyVoiceToSession(d.data.path, refText);
+                loadVoiceList();
+            } else {
+                statusEl.textContent = '上传失败: ' + d.msg;
+                statusEl.className = 'voice-status inactive';
+            }
+        })
+        .catch(function(e) {
+            statusEl.textContent = '网络错误: ' + e.message;
+            statusEl.className = 'voice-status inactive';
+        });
+}
+
+function applyVoiceToSession(refFile, refText) {
+    if (!sessionid) return;
+    fetch('/api/voice/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            sessionid: String(sessionid),
+            ref_file: refFile,
+            ref_text: refText || '',
+            engine: currentVoiceEngine || 'edgetts',
+        }),
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.code === 0) {
+            var statusEl = document.getElementById('voiceStatus');
+            statusEl.textContent = '已应用: ' + (refFile.split('/').pop() || refFile);
+            statusEl.className = 'voice-status active';
+            // 同步到 WebRTC 连接卡片的参考音频字段
+            document.getElementById('offerRefAudio').value = refFile;
+            document.getElementById('offerRefText').value = refText || '';
+        }
+    });
+}
+
+function loadVoiceList() {
+    fetch('/api/voices').then(function(r) { return r.json(); }).then(function(d) {
+        if (d.code !== 0) return;
+        var voices = d.data;
+        var container = document.getElementById('voiceList');
+        if (voices.length === 0) {
+            container.innerHTML = '<span class="text-muted small">暂无上传的声音</span>';
+            return;
+        }
+        var html = '';
+        voices.forEach(function(v) {
+            var isActive = v.path === currentVoiceFile;
+            html += '<div class="voice-item' + (isActive ? ' active' : '') + '">'
+                + '<span class="voice-item-name">' + escapeHtml(v.name) + '</span>'
+                + '<span style="font-size:0.7rem;color:#9ca3af;">' + formatSize(v.size) + '</span>'
+                + (isActive ? '<span class="voice-item-badge">使用中</span>' : '')
+                + '<button class="btn-success-custom btn-sm" onclick="applyVoice(\'' + escapeHtml(v.path) + '\',\'' + escapeHtml(v.name) + '\')" style="font-size:0.7rem;">应用</button>'
+                + '<span class="voice-item-del" onclick="deleteVoice(\'' + escapeHtml(v.path) + '\')" title="删除"><i class="bi bi-x-lg"></i></span>'
+                + '</div>';
+        });
+        container.innerHTML = html;
+    });
+}
+
+function applyVoice(path, name) {
+    var refText = document.getElementById('voiceRefText').value.trim();
+    if (!refText) {
+        refText = currentVoiceText; // 使用之前设置的值
+    }
+    currentVoiceFile = path;
+    currentVoiceText = refText;
+    applyVoiceToSession(path, refText);
+    loadVoiceList();
+}
+
+function deleteVoice(path) {
+    if (!confirm('确定删除该声音文件吗？')) return;
+    fetch('/api/voice/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: path }),
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.code === 0) {
+            if (currentVoiceFile === path) {
+                currentVoiceFile = '';
+                currentVoiceText = '';
+                var statusEl = document.getElementById('voiceStatus');
+                statusEl.textContent = '未设置自定义声音';
+                statusEl.className = 'voice-status inactive';
+            }
+            loadVoiceList();
+        }
+    });
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + 'B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+}
+
+// ─── 麦克风录音 ──────────────────────────────────────────────
+var mediaRecorder = null;
+var audioChunks = [];
+var recordStartTime = 0;
+var recordTimerInterval = null;
+var recordedBlob = null;
+
+function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('您的浏览器不支持麦克风录音，请使用 Chrome 或 Edge 浏览器');
+        return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+        audioChunks = [];
+        recordStartTime = Date.now();
+
+        // 尝试使用 audio/webm 格式，兼容性最好
+        var mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/mp4';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = ''; // 让浏览器自动选择
+            }
+        }
+        var options = {};
+        if (mimeType) options.mimeType = mimeType;
+
+        mediaRecorder = new MediaRecorder(stream, options);
+        mediaRecorder.ondataavailable = function(e) {
+            if (e.data.size > 0) audioChunks.push(e.data);
+        };
+        mediaRecorder.onstop = function() {
+            // 停止所有轨道
+            stream.getTracks().forEach(function(t) { t.stop(); });
+            // 合并音频数据
+            recordedBlob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
+            showRecordPreview();
+        };
+        mediaRecorder.start();
+
+        // 更新 UI
+        var btn = document.getElementById('btnRecord');
+        btn.className = 'record-btn stop recording';
+        btn.innerHTML = '<span class="record-dot"></span> 停止录制';
+        btn.onclick = stopRecording;
+
+        document.getElementById('recordTimer').style.display = '';
+        document.getElementById('recordPreview').style.display = 'none';
+        updateRecordTimer();
+        recordTimerInterval = setInterval(updateRecordTimer, 200);
+    }).catch(function(e) {
+        alert('无法访问麦克风: ' + (e.message || e));
+    });
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+    }
+    if (recordTimerInterval) {
+        clearInterval(recordTimerInterval);
+        recordTimerInterval = null;
+    }
+    // 恢复按钮状态
+    var btn = document.getElementById('btnRecord');
+    btn.className = 'record-btn start';
+    btn.innerHTML = '<span class="record-dot"></span> 开始录制';
+    btn.onclick = startRecording;
+}
+
+function updateRecordTimer() {
+    var elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
+    var min = Math.floor(elapsed / 60);
+    var sec = elapsed % 60;
+    document.getElementById('recordTimer').textContent =
+        (min < 10 ? '0' : '') + min + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function showRecordPreview() {
+    var url = URL.createObjectURL(recordedBlob);
+    var audioEl = document.getElementById('recordAudio');
+    audioEl.src = url;
+    audioEl.style.display = '';
+
+    var container = document.getElementById('recordPreview');
+    var duration = Math.floor((Date.now() - recordStartTime) / 1000);
+    var durationStr = Math.floor(duration / 60) + '分' + (duration % 60) + '秒';
+    container.innerHTML =
+        '<div class="record-preview">'
+        + '<span style="font-size:0.85rem;font-weight:500;">录制完成 (' + durationStr + ')</span>'
+        + '<button class="btn-outline-custom btn-sm" onclick="playRecordPreview()"><i class="bi bi-play-fill"></i> 试听</button>'
+        + '<button class="btn-primary-custom btn-sm record-save-btn" onclick="saveRecording()"><i class="bi bi-check-lg"></i> 保存录音</button>'
+        + '<button class="btn-outline-custom btn-sm" onclick="discardRecording()" style="border-color:#ef4444;color:#ef4444;"><i class="bi bi-trash"></i> 丢弃</button>'
+        + '</div>';
+    container.style.display = '';
+    document.getElementById('recordTimer').style.display = 'none';
+}
+
+function playRecordPreview() {
+    var audioEl = document.getElementById('recordAudio');
+    audioEl.play();
+}
+
+function saveRecording() {
+    if (!recordedBlob) return;
+    var name = document.getElementById('voiceName').value.trim() || '录音_' + new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+    var refText = document.getElementById('voiceRefText').value.trim();
+
+    var formData = new FormData();
+    formData.append('file', recordedBlob, name + '.webm');
+    formData.append('name', name);
+
+    var statusEl = document.getElementById('voiceStatus');
+    statusEl.textContent = '保存中...';
+    statusEl.className = 'voice-status inactive';
+
+    fetch('/api/voice/upload', { method: 'POST', body: formData })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.code === 0) {
+                statusEl.textContent = '已应用: ' + name;
+                statusEl.className = 'voice-status active';
+                currentVoiceFile = d.data.path;
+                currentVoiceText = refText;
+                applyVoiceToSession(d.data.path, refText);
+                loadVoiceList();
+                discardRecording();
+            } else {
+                statusEl.textContent = '保存失败: ' + d.msg;
+                statusEl.className = 'voice-status inactive';
+            }
+        })
+        .catch(function(e) {
+            statusEl.textContent = '网络错误: ' + e.message;
+            statusEl.className = 'voice-status inactive';
+        });
+}
+
+function discardRecording() {
+    recordedBlob = null;
+    document.getElementById('recordPreview').style.display = 'none';
+    document.getElementById('recordAudio').style.display = 'none';
+    document.getElementById('recordAudio').src = '';
+    document.getElementById('recordTimer').style.display = 'none';
+    document.getElementById('recordTimer').textContent = '00:00';
+}
+
+// 页面加载时获取标签和声音列表
+loadSlideTags();
+document.getElementById('offerAvatar').addEventListener('change', loadGestureTags);
+loadAvatarList();
+loadVoiceOptions();
+loadPptOptions();
+refreshSavedPresets();
+
+// 服务状态检查（RAG / LLM 配置提示）
+(function checkHomeStatus() {
+    fetch('/api/status', { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var banner = document.getElementById('homeStatusBanner');
+            var text = document.getElementById('homeStatusText');
+            if (!banner || !d || d.code !== 0) return;
+            var data = d.data || {};
+            var warnings = [];
+            if (!data.rag_available) warnings.push('知识库服务(RAG)未运行：课程资料问答与知识库管理将不可用，请先启动 rag 服务');
+            if (!data.llm_configured) warnings.push('未配置 DEEPSEEK_API_KEY：自由问答(Chat LLM)不可用，可在 .env 文件中配置');
+            if (warnings.length) {
+                banner.style.display = 'block';
+                text.textContent = '⚠ ' + warnings.join('；');
+            }
+        })
+        .catch(function(e) { console.error('[status] 状态检查失败:', e); });
+})();
+
+// ─── 提问模式 ──────────────────────────────────────────────
+// 提问卡片由 quiz-panel.js 动态创建。未启用时 #quizPanelHost 保持为空，
+// 因此普通模式下 DOM 中根本不存在提问卡片。
+let quizPanel = null;
+
+function setQuizStatus(message, isError) {
+    const el = document.getElementById('quizConfigStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? '#b91c1c' : '';
+}
+
+// 提问必须作用在「数字人展示页」实际使用的会话上：/offer 每次都会新建独立会话，
+// 控制台自己的 sessionid 与展示页的并不相同。展示页会把它的会话 id 写到
+// localStorage('knowtalk_live_sessionid')，这里优先取它；取不到再退回控制台会话。
+function quizLiveSessionId() {
+    try { return localStorage.getItem('knowtalk_live_sessionid') || ''; } catch (e) { return ''; }
+}
+
+function quizTargetSessionId() {
+    return quizLiveSessionId() || (sessionid ? String(sessionid) : '');
+}
+
+function quizPanelInstance() {
+    if (!quizPanel) {
+        const host = document.getElementById('quizPanelHost');
+        if (!host || typeof QuizPanel === 'undefined') return null;
+        quizPanel = QuizPanel.createQuizPanel({
+            host: host,
+            // inline：控制台不再弹模态框（学员在展示页右侧对话栏作答），
+            // 这里只当状态机用，把进度写到本卡片的说明行。
+            mode: 'inline',
+            getSessionId: function() { return quizTargetSessionId(); },
+            onStatus: onQuizStatusChange,
+            notify: function(message) {
+                // 只写红色状态行，不再 alert：启动类失败由 launchQuiz 自愈处理后
+                // 用友好的说明覆盖，弹窗打断配置流程反而让人以为要重头来。
+                setQuizStatus(message, true);
+            },
+        });
+    }
+    return quizPanel;
+}
+
+// 阶段变化时更新说明行（每次轮询都写会把「正在启动…」等提示刷掉，所以做去重）。
+let lastQuizStage = '';
+// 已在哪个会话上开过课：重复点「开始」会把服务端编排器重建、进度归零，
+// 因此同一会话仍在进行时不再重复发起。
+let quizLaunchedSession = '';
+const QUIZ_STAGE_LABEL = {
+    teaching: '讲授中', waiting_slide: '等待翻到指定页', asking: '正在念题',
+    awaiting_answer: '等待学员作答',
+    grading: '判分中', feedback: '反馈中', finished: '已结束',
+};
+function onQuizStatusChange(status) {
+    const stage = (status && status.stage) || '';
+    if (!status || !status.in_quiz) { lastQuizStage = ''; quizLaunchedSession = ''; return; }
+    if (stage === lastQuizStage) return;
+    lastQuizStage = stage;
+    if (stage === 'finished') {
+        // 课堂讲完：取一次总评分显示在这里（学员端也会显示同一份评分并收起对话栏）
+        setQuizStatus('课堂结束，正在汇总本次评分…', false);
+        const sid = quizTargetSessionId();
+        if (!sid) return;
+        fetch('/api/quiz/report?sessionid=' + encodeURIComponent(sid))
+            .then(function(r) { return r.json(); })
+            .then(function(body) {
+                const summary = ((body && body.data) || {}).summary;
+                setQuizStatus(summary
+                    ? '课堂结束 · 本次得分 ' + summary.score + ' 分（共 ' + summary.total + ' 题，答对 '
+                      + summary.correct + ' 题，未作答 ' + summary.unanswered + ' 题）'
+                    : '课堂结束（本次没有作答记录，未评分）。', false);
+            })
+            .catch(function() { setQuizStatus('课堂结束。', false); });
+        return;
+    }
+    setQuizStatus('提问进度：' + (status.completed || 0) + '/' + (status.total || 0)
+        + ' · ' + (QUIZ_STAGE_LABEL[stage] || stage)
+        + '（学员在数字人展示页右侧「向数字人提问」里作答）', false);
+}
+
+function onQuizToggle(checkbox) {
+    if (!checkbox.checked) { stopQuizMode(); }
+}
+
+// ─── 问答对（内联题目，不落库、不依赖「预设文本」）──────────────
+let quizPairEditor = null;
+
+function quizPairEditorInstance() {
+    if (!quizPairEditor) {
+        const host = document.getElementById('quizPairList');
+        if (!host || typeof QuizPanel === 'undefined') return null;
+        quizPairEditor = QuizPanel.createPairEditor({ document: document, host: host });
+    }
+    return quizPairEditor;
+}
+
+function addQuizPair() {
+    const editor = quizPairEditorInstance();
+    if (editor) editor.addRow();
+    persistQuizConfig();
+}
+
+// 依据「预设文本」自动生成问答对：不落库、不需要连接数字人。
+function generateQuizPairs() {
+    const text = (document.getElementById('presetText').value || '').trim();
+    if (!text) return alert('请先在「预设文本」里写好讲稿，再生成问答对');
+    const editor = quizPairEditorInstance();
+    if (!editor) return alert('问答对编辑区未初始化');
+
+    const btn = document.getElementById('quizGeneratePairsBtn');
+    const origHTML = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i>生成中...'; }
+    setQuizStatus('正在根据预设文本生成问答对…（需要已配置 LLM）', false);
+
+    fetch('/api/quiz/pairs/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, count: 1 }),
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+        if (!d || d.code !== 0) {
+            setQuizStatus('生成问答对失败：' + (d && d.msg ? d.msg : '未知错误'), true);
+            return;
+        }
+        const pairs = (d.data && d.data.pairs) || [];
+        if (!pairs.length) { setQuizStatus('没有生成到可用的问答对', true); return; }
+        // 先清空现有行，避免重复堆叠
+        editor.destroy();
+        pairs.forEach(function(pair) {
+            editor.addRow({
+                question: pair.question,
+                reference_answer: pair.reference_answer,
+                slide_id: pair.slide_id,
+            });
+        });
+        persistQuizConfig();
+        setQuizStatus('已生成 ' + pairs.length + ' 对问答，可继续编辑或直接开始提问式讲课。', false);
+    }).catch(function(e) {
+        if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+        setQuizStatus('生成问答对失败：' + (e && e.message ? e.message : e), true);
+    });
+}
+
+// ─── 提问模式配置的本地持久化（未连接数字人也可先配置）────────────
+const QUIZ_CONFIG_KEY = 'zhike_quiz_config';
+
+function persistQuizConfig() {
+    try {
+        const editor = quizPairEditorInstance();
+        const config = {
+            count: (document.getElementById('quizCount') || {}).value,
+            mode: (document.getElementById('quizMode') || {}).value,
+            slideRange: (document.getElementById('quizSlideRange') || {}).value,
+            // 讲稿必须一起存：提问式讲课要靠它一段段讲授、判分后接着往下讲。
+            // 不存的话控制台刷新一次就变成"0 段"，答完题课堂立刻结束。
+            text: (document.getElementById('presetText') || {}).value || '',
+            pairs: editor ? editor.getPairs() : [],
+        };
+        localStorage.setItem(QUIZ_CONFIG_KEY, JSON.stringify(config));
+    } catch (e) { /* 本地存储不可用时忽略 */ }
+}
+
+function restoreQuizConfig() {
+    let config = null;
+    try {
+        config = JSON.parse(localStorage.getItem(QUIZ_CONFIG_KEY) || 'null');
+    } catch (e) { config = null; }
+    if (!config) return;
+
+    const countEl = document.getElementById('quizCount');
+    const modeEl = document.getElementById('quizMode');
+    const rangeEl = document.getElementById('quizSlideRange');
+    if (countEl && config.count) countEl.value = config.count;
+    if (modeEl && config.mode) modeEl.value = config.mode;
+    if (rangeEl && config.slideRange !== undefined) rangeEl.value = config.slideRange || '';
+
+    const textEl = document.getElementById('presetText');
+    if (textEl && !(textEl.value || '').trim() && config.text) {
+        textEl.value = config.text;
+    }
+
+    if (Array.isArray(config.pairs) && config.pairs.length) {
+        const editor = quizPairEditorInstance();
+        if (editor) {
+            editor.destroy();
+            config.pairs.forEach(function(pair) { editor.addRow(pair); });
+        }
+    }
+}
+
+// 「1-8」「1~8」「1,8」都接受；空值表示不限定范围
+function parseSlideRange(value) {
+    const text = (value || '').trim();
+    if (!text) return null;
+    const parts = text.split(/[-~,\s]+/).filter(function(item) { return item !== ''; });
+    if (parts.length !== 2) return 'invalid';
+    const start = parseInt(parts[0], 10);
+    const end = parseInt(parts[1], 10);
+    if (isNaN(start) || isNaN(end)) return 'invalid';
+    return [start, end];
+}
+
+// 「待启动提问」：未连接时就点「开始提问式讲课」不报错，而是把这次配置登记下来，
+// 等数字人展示页连上（它会在 localStorage 公布自己的会话 id）后自动开始。
+// 注意：初始化代码放在脚本末尾，必须早于它执行的常量不要留到后面声明。
+var QUIZ_PENDING_KEY = 'zhike_quiz_pending';
+var QUIZ_PENDING_MAX_AGE = 2 * 60 * 60 * 1000;   // 2 小时前的登记视为过期
+var quizPendingTimer = null;
+
+function savePendingQuiz(payload) {
+    try {
+        localStorage.setItem(QUIZ_PENDING_KEY, JSON.stringify({
+            payload: payload,
+            savedAt: Date.now(),
+        }));
+    } catch (e) { /* 本地存储不可用时只影响"自动开始" */ }
+}
+
+function loadPendingQuiz() {
+    let record = null;
+    try {
+        record = JSON.parse(localStorage.getItem(QUIZ_PENDING_KEY) || 'null');
+    } catch (e) { record = null; }
+    if (!record || !record.payload) return null;
+    if (record.savedAt && Date.now() - record.savedAt > QUIZ_PENDING_MAX_AGE) {
+        clearPendingQuiz();
+        return null;
+    }
+    return record.payload;
+}
+
+function clearPendingQuiz() {
+    try { localStorage.removeItem(QUIZ_PENDING_KEY); } catch (e) { /* 忽略 */ }
+    if (quizPendingTimer) { clearInterval(quizPendingTimer); quizPendingTimer = null; }
+}
+
+// 等展示页公布会话后自动开始（只启动一次；启动后立刻清掉登记，避免重复开课）。
+function watchPendingQuiz() {
+    if (quizPendingTimer) return;
+    quizPendingTimer = setInterval(function () {
+        const payload = loadPendingQuiz();
+        if (!payload) { clearPendingQuiz(); return; }
+        const target = quizLiveSessionId();
+        if (!target) return;
+        clearPendingQuiz();
+        launchQuiz(payload, target);
+    }, 1000);
+}
+
+// 讲稿文本：提问式讲课必须带着它，编排器才能"讲一段 → 提问 → 判分 → 继续讲"。
+// 「预设文本」为空时回退到「连接后播放预设」里选中的那份——展示页自动播放的也是它，
+// 否则就会出现"讲稿明明配了，提问却只有 0 段、答完题课堂就结束"。
+function currentLectureText() {
+    const text = ((document.getElementById('presetText') || {}).value || '').trim();
+    if (text) return text;
+    const name = ((document.getElementById('offerPreset') || {}).value || '').trim();
+    if (!name) return '';
+    try {
+        const presets = JSON.parse(localStorage.getItem('zhike_presets') || '{}');
+        return String((presets && presets[name]) || '').trim();
+    } catch (e) { return ''; }
+}
+
+function buildQuizPayload() {
+    const editor = quizPairEditorInstance();
+    const problem = editor ? editor.validate() : '';
+    if (problem) return { error: problem + '，请补齐或删掉这一行' };
+    const pairs = editor ? editor.getPairs() : [];
+
+    const text = currentLectureText();
+    if (!text && !pairs.length) {
+        return { error: '请填写问答对，或在「预设文本」里写好带 [PPT:N] 标签的讲稿（也可以在「连接后播放预设」里选一份已保存的文本）' };
+    }
+
+    const payload = {
+        count: parseInt(document.getElementById('quizCount').value, 10) || 3,
+        mode: document.getElementById('quizMode').value || 'random',
+    };
+    if (text) payload.text = text;
+    // 填了问答对就以问答对为准：提问数量由问答对数量决定，服务端会忽略 count
+    if (pairs.length) payload.questions = pairs;
+
+    const range = parseSlideRange(document.getElementById('quizSlideRange').value);
+    if (range === 'invalid') return { error: '页码范围格式不对，请写成「1-8」这样的形式' };
+    if (range) payload.slide_range = range;
+    if (payload.mode === 'interval') {
+        const wanted = pairs.length || payload.count;
+        const span = range ? (range[1] - range[0] + 1) : 0;
+        payload.interval = span > 0 ? Math.max(1, Math.round(span / wanted)) : 2;
+    }
+    return { payload: payload, pairs: pairs, hasLecture: !!text };
+}
+
+function launchQuiz(payload, targetSessionId) {
+    const panel = quizPanelInstance();
+    if (!panel) {
+        setQuizStatus('提问面板未初始化：请检查 /quiz-panel.js 是否能正常加载', true);
+        return Promise.resolve(null);
+    }
+    // 同一会话上已经在进行：重复发起会重建服务端编排器，把进度和当前题目清掉。
+    if (quizLaunchedSession && quizLaunchedSession === String(targetSessionId)
+        && lastQuizStage && lastQuizStage !== 'finished') {
+        setQuizStatus('提问已在进行中（' + (QUIZ_STAGE_LABEL[lastQuizStage] || lastQuizStage)
+            + '），无需重复开始。', false);
+        return Promise.resolve(null);
+    }
+    const full = Object.assign({}, payload, { sessionid: targetSessionId });
+    const count = (payload.questions || []).length;
+    document.getElementById('quizEnabled').checked = true;
+    setQuizStatus(count
+        ? '正在按 ' + count + ' 对问答发起提问式讲课…'
+        : '正在启动提问式讲课…', false);
+    return panel.startLecture(full).then(function (resp) {
+        if (!resp || resp.code !== 0) {
+            // 陈旧会话 id 自愈：localStorage 里留着的可能是上一次展示页的 id
+            //（服务重启/异常关窗后没机会清掉）。后端报「会话不存在」时清掉它、
+            // 重新登记待启动、继续等展示页连上自动开始——对用户表现为"配置还在，
+            // 连上就自动开始"，而不是启动失败。
+            const msg = (resp && resp.msg) || '';
+            if (msg.indexOf('会话不存在') !== -1) {
+                try { localStorage.removeItem('knowtalk_live_sessionid'); } catch (e) { /* 忽略 */ }
+                savePendingQuiz(payload);
+                watchPendingQuiz();
+                setQuizStatus('展示页会话已失效（可能服务重启过）。它重新连上后会自动开始提问，无需再操作。', false);
+            }
+            return resp;
+        }
+        // 跨标签页通知展示页：立刻查一次状态，不必等下一轮慢速轮询。
+        try { localStorage.setItem('zhike_quiz_signal', String(Date.now())); } catch (e) { /* 忽略 */ }
+        quizLaunchedSession = String(targetSessionId);
+        if (!panel.isPolling()) return resp;
+        setQuizStatus((payload.text ? '正在带着讲稿讲授并提问' : '未提供讲稿，按页码逐页提问')
+            + (count ? '（共 ' + count + ' 题）' : '')
+            + '，学员作答会实时显示在这里。', false);
+        return resp;
+    });
+}
+
+function startQuizLecture() {
+    const built = buildQuizPayload();
+    if (built.error) return alert(built.error);
+    persistQuizConfig();
+
+    // 关键：提问必须开在「数字人展示页」实际使用的会话上（/offer 每次新建会话），
+    // 未连接时把配置登记成待启动，等它连上自动开始——不必先点「开始连接」。
+    const target = quizLiveSessionId();
+    if (target) {
+        clearPendingQuiz();
+        return launchQuiz(built.payload, target);
+    }
+
+    savePendingQuiz(built.payload);
+    document.getElementById('quizEnabled').checked = true;
+    setQuizStatus('已保存这次提问配置（' + ((built.payload.questions || []).length || built.payload.count)
+        + (built.payload.questions ? ' 道题' : ' 道题，从题库抽取')
+        + (built.hasLecture ? '，带讲稿讲授' : '；未提供讲稿，按页码逐页提问')
+        + '）。数字人展示页一连上就会自动开始，无需再点一次。', false);
+    watchPendingQuiz();
+}
+
+function stopQuizMode() {
+    const panel = quizPanelInstance();
+    if (panel) panel.destroy();
+    clearPendingQuiz();
+    quizLaunchedSession = '';
+    lastQuizStage = '';
+    // 关键：服务端编排器必须真正停止，否则退出后仍会继续朗读。
+    // 停止的必须是提问所作用的目标会话（展示页会话），不是控制台自己的会话。
+    const target = quizTargetSessionId();
+    if (target) {
+        fetch('/api/quiz/stop', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionid: target }),
+        }).catch(function() {});
+    }
+    const checkbox = document.getElementById('quizEnabled');
+    if (checkbox) checkbox.checked = false;
+    setQuizStatus('已退出提问模式，恢复连续讲授。', false);
+}
+
+// 提问模式的初始化放在脚本最后：它要用到上面这些 const/var（常量在 TDZ 里
+// 取不到，放到前面执行会静默失效——"刷新后不恢复"就是这么来的）。
+(function initQuizConfigPersistence() {
+    ['quizCount', 'quizMode', 'quizSlideRange'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', persistQuizConfig);
+    });
+    restoreQuizConfig();
+
+    // 未连接数字人也能先把问答对准备好：给一行空行，避免"以为要先连接才能填"。
+    const editor = quizPairEditorInstance();
+    if (editor && editor.count() === 0) editor.addRow();
+
+    // 边填边存：问答对的输入也要落到本地，刷新/断线都不丢。
+    const list = document.getElementById('quizPairList');
+    if (list) {
+        let persistTimer = null;
+        list.addEventListener('input', function() {
+            if (persistTimer) clearTimeout(persistTimer);
+            persistTimer = setTimeout(persistQuizConfig, 400);
+        });
+    }
+
+    // 控制台刷新后继续等：之前登记的"待启动提问"仍然有效。
+    if (loadPendingQuiz()) {
+        const enabled = document.getElementById('quizEnabled');
+        if (enabled) enabled.checked = true;
+        setQuizStatus('已登记的提问配置仍待启动，数字人展示页连上后会自动开始。', false);
+        watchPendingQuiz();
+    }
+})();
+</script>
+<script>
+/* 演示面板：拖动讲稿位置，看它停在哪一页。
+   没有这段脚本时，面板照常显示「第 3 页停下出题」—— 那本来就是这一节要说的话。 */
+(function () {
+    var pages = [
+        { t: '这门课讲什么', c: '三段序列，三种写法，先看它们共有的部分。',
+          p: ['序列是一串有序的值', '都能按下标取值', '都能切片'] },
+        { t: '切片与遍历', c: '切片不复制元素，它拿到的是同一份数据的窗口。',
+          p: ['seq[a:b] 取左闭右开区间', '遍历顺序与存储顺序一致', '负下标从末尾数起'] },
+        { t: '列表与元组', c: '唯一的实质差别是可变性：一个能改，一个不能改。',
+          p: ['都能按下标取值', '都能切片，都能遍历', '区别只在可变性'] },
+        { t: '什么时候用元组', c: '希望这份序列交出去之后不会被改写的时候。',
+          p: ['当作函数的多个返回值', '当作字典的键', '当作常量表'] },
+        { t: '常见错误', c: '把可变对象当默认参数，只在第一次调用时生效。',
+          p: ['默认参数只求值一次', 'append 返回的是 None', '切片不会越界报错'] },
+        { t: '字符串也是序列', c: '所以上面这些操作，字符串全都有，只是不能改。',
+          p: ['切片、遍历、in 判断', '不可变，拼接会新建', '编码问题另讲'] },
+        { t: '集合与字典', c: '它们不是序列，因为不按下标存。',
+          p: ['按值而不是按位置找', '顺序不保证', '查找是常数时间'] },
+        { t: '小结', c: '选序列类型，先问它是改还是不改。',
+          p: ['要改，用列表', '不改，用元组', '要按名字取，用字典'] }
+    ];
+
+    var at = document.getElementById('hpAt');
+    var out = document.getElementById('hpAtOut');
+    var pageNo = document.getElementById('hpPageNo');
+    var flag = document.getElementById('hpFlag');
+    var title = document.getElementById('hpSlideTitle');
+    var points = document.getElementById('hpSlidePoints');
+    var cap = document.getElementById('hpCapText');
+    var quiz = document.getElementById('hpQuiz');
+    if (!at || !title) return;
+
+    var QUIZ_AT = 3;
+
+    function render(n) {
+        var d = pages[n - 1];
+        if (!d) return;
+        pageNo.textContent = '第 ' + n + ' 页 / 共 ' + pages.length + ' 页';
+        out.textContent = '第 ' + n + ' 页';
+        title.textContent = d.t;
+        points.innerHTML = d.p.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+        cap.textContent = d.c;
+        var paused = n === QUIZ_AT;
+        quiz.style.display = paused ? '' : 'none';
+        flag.textContent = paused ? '已停下 · 等人作答' : '讲课中';
+    }
+
+    at.addEventListener('input', function () { render(parseInt(at.value, 10)); });
+    render(parseInt(at.value, 10));
+})();
+
+/* 入场：默认可见，脚本确认能跑才把元素藏起来。
+   只动 opacity 与 translateY，进视口一次即解绑。 */
+(function () {
+    var root = document.documentElement;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = [].slice.call(document.querySelectorAll('.hp-rise'));
+    if (reduce || !items.length) return;
+
+    root.classList.add('js');
+
+    var ticking = false;
+    function paint() {
+        var h = window.innerHeight;
+        for (var i = items.length - 1; i >= 0; i--) {
+            var r = items[i].getBoundingClientRect();
+            if (r.top < h && r.bottom > 0) {
+                items[i].classList.add('in');
+                items.splice(i, 1);
+            }
+        }
+        ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+        if (!ticking) { ticking = true; requestAnimationFrame(paint); }
+    }, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+})();
+</script>
+</body>
+</html>

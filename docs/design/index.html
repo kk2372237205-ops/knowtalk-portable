@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>知课 · 把一堂课交给数字人讲</title>
+<style>
+/* ─────────────────────────────────────────────────────────────
+   The quiet instrument · seed 1836391553
+   地面 --bg 纸色 / 墨 --ink / 一个强调 --accent 蓝墨水
+   五种字号、两种字体、没有一条装饰性细线
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+    --bg: #fbf8f1;
+    --surface: #f4efe2;
+    --board: #26241e;
+    --ink: #211f1a;
+    --muted: #6c6860;
+    --soft: #757067;
+    --accent: #1f3b63;
+    --chalk: #e0c274;
+    --hair: #e3dbc8;
+
+    /* 两族：拉丁衬线 + 中文宋体做展示，系统黑体做正文。
+       栈首放 Latin 衬线，中文字形逐个回退到 Songti / SimSun —— 同一个字号的标题，
+       数字与西文是 Georgia，汉字是宋体，两边的粗细才配得上。 */
+    --serif: Georgia, "Songti SC", "STSong", SimSun, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+            "Segoe UI", system-ui, sans-serif;
+
+    --t-display: clamp(36px, 5.2vw, 76px);
+    --t-h2: clamp(26px, 2.3vw, 34px);
+    --t-body: 19px;
+    --t-sm: 16px;
+    --t-xs: 13px;
+
+    --col: 680px;
+    --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scrollbar-gutter: stable both-edges; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--t-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 1px;
+}
+
+/* 一栏到底：所有内容共享这一条左边线 */
+.col {
+    width: var(--col);
+    max-width: calc(100% - 48px);
+    margin: 0 auto;
+}
+
+/* ── 导航：一条静默的横条，没有底框、没有毛玻璃 ───────────────── */
+.bar {
+    width: var(--col);
+    max-width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 26px 0;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: var(--t-sm);
+}
+.bar .mark {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    margin-right: auto;
+}
+.bar nav { display: flex; gap: 26px; }
+.bar nav a, .bar .enter { color: var(--muted); transition: color .18s; }
+.bar nav a:hover, .bar .enter:hover { color: var(--ink); }
+
+/* ── 首屏：一句话，然后空着 ───────────────────────────────────── */
+.hero { padding-top: 7vh; }
+#demo { padding-top: 88px; }
+.hero h1 {
+    font-family: var(--serif);
+    font-size: var(--t-display);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+}
+.lede {
+    margin-top: 34px;
+    max-width: 29em;
+    font-size: var(--t-body);
+    line-height: 1.65;
+    text-wrap: pretty;
+}
+.acts {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin-top: 44px;
+}
+.btn {
+    display: inline-flex;
+    align-items: center;
+    height: 50px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 0;
+    background: var(--accent);
+    color: #fbf8f1;
+    font-family: var(--sans);
+    font-size: var(--t-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .14s var(--ease);
+}
+.btn:hover { background: #172e4d; }
+.btn:active { background: #12253d; }
+.link {
+    font-size: var(--t-sm);
+    color: var(--muted);
+    transition: color .18s;
+}
+.link:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
+}
+
+/* ── 一节又节的间距：只用空，不用线 ───────────────────────────── */
+.sec { padding-top: 98px; }
+.sec h2 {
+    font-family: var(--serif);
+    font-size: var(--t-h2);
+    font-weight: 700;
+    line-height: 1.25;
+    text-wrap: balance;
+}
+.sec > p {
+    margin-top: 20px;
+    max-width: 31em;
+    color: var(--muted);
+    line-height: 1.65;
+    text-wrap: pretty;
+}
+
+/* ── 演示面板：左是播放页，右是六个控件 ───────────────────────── */
+.panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 248px;
+    margin-top: 44px;
+    background: var(--surface);
+}
+.stage {
+    background: var(--board);
+    color: #efeade;
+    padding: 22px 24px 20px;
+    min-height: 344px;
+    display: flex;
+    flex-direction: column;
+}
+.stage-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: var(--t-xs);
+    color: #968f80;
+    font-variant-numeric: tabular-nums;
+}
+.stage-flag { color: var(--chalk); }
+.slide { margin-top: 26px; flex: 1; }
+.slide-title {
+    font-family: var(--serif);
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #f4f0e4;
+}
+.slide-points { margin-top: 16px; }
+.slide-points li {
+    font-size: var(--t-sm);
+    line-height: 1.9;
+    color: #bdb6a6;
+}
+.caption {
+    margin-top: 28px;
+    font-size: var(--t-sm);
+    line-height: 1.7;
+    color: #e6e1d2;
+}
+.caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.05em;
+    margin-left: 3px;
+    vertical-align: -3px;
+    background: var(--chalk);
+}
+
+/* 题卡：只在这一页出现 */
+.quiz {
+    margin-top: 20px;
+    padding: 16px 16px 14px;
+    background: #f7f4ea;
+    color: var(--ink);
+}
+.quiz-q { font-size: var(--t-sm); font-weight: 600; line-height: 1.55; color: var(--ink); }
+.opt {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    font-size: 15px;
+    color: var(--ink);
+}
+.opt i {
+    flex: none;
+    width: 17px;
+    font-style: normal;
+    font-size: var(--t-xs);
+    line-height: 1.9;
+    color: var(--soft);
+}
+.opt .tick {
+    margin-left: auto;
+    font-size: var(--t-xs);
+    color: var(--muted);
+}
+.opt.is-picked i { color: var(--ink); }
+.opt.is-picked { font-weight: 600; }
+.verdict {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-top: 12px;
+    font-size: var(--t-xs);
+    color: var(--muted);
+}
+.verdict b { color: var(--ink); font-weight: 600; }
+
+/* 控件：六行，44px 一行 */
+.controls { padding: 8px 0; }
+.ctl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 18px;
+    font-size: 14px;
+    color: var(--muted);
+}
+.ctl b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.ctl-wide { grid-template-columns: 1fr; align-content: center; gap: 4px; padding-top: 6px; padding-bottom: 6px; }
+.ctl-wide .row { display: flex; justify-content: space-between; align-items: baseline; }
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+    cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: #d8cfb8;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+input[type="range"]::-moz-range-track { height: 3px; background: #d8cfb8; }
+input[type="range"]::-moz-range-thumb {
+    width: 13px; height: 13px; border: 0; border-radius: 50%; background: var(--accent);
+}
+.hint {
+    margin-top: 16px;
+    font-size: var(--t-xs);
+    color: var(--soft);
+}
+
+/* ── 四个零件：文字与真实界面片段交替靠边 ─────────────────────── */
+.parts { margin-top: 56px; }
+.part { padding-top: 42px; }
+.part:first-child { padding-top: 0; }
+.part h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+.part p {
+    margin-top: 12px;
+    max-width: 29em;
+    line-height: 1.65;
+    text-wrap: pretty;
+}
+.frag {
+    margin-top: 26px;
+    background: var(--surface);
+    font-size: var(--t-xs);
+    color: var(--muted);
+}
+
+/* 片段一：形象面板 */
+.face {
+    display: grid;
+    grid-template-columns: 132px 1fr;
+    gap: 20px;
+    padding: 20px;
+    align-items: center;
+}
+.face img {
+    width: 132px;
+    height: 176px;
+    object-fit: cover;
+    object-position: 50% 24%;
+    /* 素材照是白底，multiply 让白融进米色，人像边缘不留一个白方块 */
+    mix-blend-mode: multiply;
+    filter: grayscale(1) contrast(1.05);
+}
+.face dl { display: grid; grid-template-columns: 1fr auto; gap: 10px 12px; max-width: 360px; }
+.face dt { color: var(--muted); }
+.face dd { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* 片段二：讲稿编辑器 —— 全页第二块深色，让四个零件有轻重 */
+.script { padding: 18px 20px; background: var(--board); }
+.script pre {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 2;
+    color: #e6e1d2;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.script em { font-style: normal; color: var(--chalk); font-weight: 500; }
+.script .cursor {
+    display: inline-block;
+    width: 2px;
+    height: .95em;
+    vertical-align: -2px;
+    background: var(--chalk);
+}
+
+/* 片段三：判定条 */
+.mark-line {
+    padding: 18px 20px;
+    background: var(--accent);
+    color: #e6e9ee;
+}
+.mark-line b { display: block; font-size: var(--t-sm); color: var(--chalk); font-weight: 600; }
+.mark-line span { display: block; margin-top: 6px; line-height: 1.6; color: #d3dae4; }
+
+/* 片段四：问答与出处 */
+.ask { padding: 18px 20px; }
+.ask .q { color: var(--muted); }
+.ask .a { margin-top: 10px; color: var(--ink); line-height: 1.65; }
+.ask .src { margin-top: 12px; color: var(--muted); }
+
+/* ── 三步：一张流程单 ─────────────────────────────────────────── */
+.slip {
+    margin-top: 48px;
+    width: 100%;
+    padding: 30px 26px 44px;
+    background: var(--surface);
+    font-size: var(--t-sm);
+    font-variant-numeric: tabular-nums;
+    clip-path: polygon(
+        0 0, 100% 0, 100% 96%,
+        94% 100%, 88% 96%, 82% 100%, 76% 96%, 70% 100%, 64% 96%,
+        58% 100%, 52% 96%, 46% 100%, 40% 96%, 34% 100%, 28% 96%,
+        22% 100%, 16% 96%, 10% 100%, 4% 96%, 0 100%
+    );
+}
+.slip h3 {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--ink);
+}
+.slip h3 + .rows { margin-top: 10px; }
+.rows + h3 { margin-top: 26px; }
+.row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 0;
+}
+.row .what { flex: none; }
+.row .dots {
+    flex: 1;
+    border-bottom: 3px dotted #cec4aa;
+    transform: translateY(-4px);
+}
+.row .val { flex: none; color: var(--muted); }
+.slip .total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    padding: 12px 14px;
+    background: var(--ink);
+    color: #f6f2e6;
+}
+.slip .total b { color: var(--chalk); font-weight: 600; }
+
+/* ── 问题：连续阅读，不做折叠 ─────────────────────────────────── */
+.qa { margin-top: 44px; }
+.qa p {
+    max-width: 33em;
+    margin-bottom: 18px;
+    line-height: 1.7;
+    text-wrap: pretty;
+}
+.qa b { font-weight: 600; }
+
+/* ── 尾：名字回来，一行收住 ───────────────────────────────────── */
+.foot {
+    margin-top: 48px;
+    padding: 0 0 44px;
+}
+.foot .mark {
+    font-family: var(--serif);
+    font-size: var(--t-display);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: .02em;
+}
+.foot .note {
+    margin-top: 18px;
+    font-size: var(--t-xs);
+    line-height: 1.8;
+    color: var(--soft);
+    max-width: 26em;
+}
+
+/* ── 动：只有反馈与一次安静的入场 ─────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+    html.js .rise { opacity: 0; transform: translateY(20px); }
+    html.js .rise.in {
+        opacity: 1;
+        transform: none;
+        transition: opacity .5s var(--ease), transform .5s var(--ease);
+        transition-delay: calc(var(--i, 0) * 70ms);
+    }
+    .caret, .cursor { animation: blink 1.15s steps(1, end) infinite; }
+    .face img { transition: filter .3s var(--ease); }
+}
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+/* ── 窄屏：一栏照旧，只是贴到边距 ─────────────────────────────── */
+@media (max-width: 900px) {
+    .bar { padding: 22px 24px; gap: 18px; }
+    .bar nav { display: none; }
+    .hero { padding-top: 15vh; }
+    .sec { padding-top: 100px; }
+    .panel { grid-template-columns: 1fr; }
+    /* 面板改成上下之后，控件不能再一左一右拉满整行，排成两列 */
+    .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 10px 0;
+    }
+    .ctl { height: 46px; padding: 0 20px; }
+    .ctl-wide { grid-column: 1 / -1; }
+    .foot { margin-top: 90px; }
+}
+@media (max-width: 560px) {
+    :root { --t-body: 18px; --t-sm: 16px; }
+    .col { max-width: calc(100% - 40px); }
+    .hero h1 { font-size: clamp(32px, 9.4vw, 42px); }
+    .slide-title { font-size: 21px; }
+    .stage { padding: 18px 18px 16px; min-height: 0; }
+    .slip { padding: 24px 20px 30px; }
+    .row .what { max-width: 62%; }
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+    <a class="mark" href="#">知课</a>
+    <nav>
+        <a href="#demo">演示</a>
+        <a href="#parts">零件</a>
+        <a href="#steps">三步</a>
+        <a href="#questions">问题</a>
+    </nav>
+    <a class="enter" href="#">进入工作台</a>
+</div>
+
+<main class="col">
+
+    <!-- 首屏 -->
+    <header class="hero">
+        <h1 class="rise" style="--i:0">把一份讲稿，<br>讲成一堂课。</h1>
+        <p class="lede rise" style="--i:1">一个数字人讲师，照着讲稿讲课。翻页、手势、什么时候出题，都写在稿子里。形象、课件、成绩留在本机。</p>
+        <div class="acts rise" style="--i:2">
+            <a class="btn" href="#">进入工作台</a>
+            <a class="link" href="#demo">看它怎么讲</a>
+        </div>
+    </header>
+
+    <!-- 演示 -->
+    <section class="sec" id="demo">
+        <h2 class="rise">讲到第 3 页，它会停</h2>
+        <p class="rise" style="--i:1">题目写在讲稿里，不另开窗口。声音停下、幻灯片冻住，学员答完再往下讲。</p>
+
+        <div class="panel rise" style="--i:2">
+            <div class="stage" data-ui>
+                <div class="stage-bar">
+                    <span id="pageNo">第 3 页 / 共 8 页</span>
+                    <span class="stage-flag" id="flag">已停下 · 等人作答</span>
+                </div>
+
+                <div class="slide">
+                    <h3 class="slide-title" id="slideTitle">列表与元组</h3>
+                    <ul class="slide-points" id="slidePoints">
+                        <li>都能按下标取值</li>
+                        <li>都能切片，都能遍历</li>
+                        <li>区别只在可变性</li>
+                    </ul>
+                </div>
+
+                <p class="caption">
+                    <span id="capText">唯一的实质差别是可变性：一个能改，一个不能改。</span><i class="caret"></i>
+                </p>
+
+                <div class="quiz" id="quiz">
+                    <p class="quiz-q">列表和元组，唯一的实质差别是什么？</p>
+                    <div class="opt"><i>A</i><span>占用的内存大小不同</span></div>
+                    <div class="opt is-picked"><i>B</i><span>一个可变，一个不可变</span><span class="tick">已选</span></div>
+                    <div class="opt"><i>C</i><span>能存放的元素类型不同</span></div>
+                    <div class="verdict"><b>正确</b><span>依据：第 3 页第二段</span></div>
+                </div>
+            </div>
+
+            <div class="controls" data-ui>
+                <div class="ctl ctl-wide">
+                    <div class="row"><label for="at">讲稿位置</label><b id="atOut">第 3 页</b></div>
+                    <input id="at" type="range" min="1" max="8" step="1" value="3"
+                           aria-label="讲稿位置，第几页">
+                </div>
+                <div class="ctl"><span>提问点</span><b>第 3 页</b></div>
+                <div class="ctl"><span>手势</span><b>开</b></div>
+                <div class="ctl"><span>语速</span><b>1.0×</b></div>
+                <div class="ctl"><span>判分</span><b>模型</b></div>
+                <div class="ctl"><span>输出</span><b>WebRTC</b></div>
+            </div>
+        </div>
+
+        <p class="hint rise" style="--i:3">拖一下讲稿位置。回到第 3 页它会停，离开就接着讲。</p>
+    </section>
+
+    <!-- 四个零件 -->
+    <section class="sec" id="parts">
+        <h2 class="rise">一堂课的四个零件</h2>
+        <p class="rise" style="--i:1">任何一件单独拿出来都不稀奇，接在一起才能连着讲两小时不用人盯。</p>
+
+        <div class="parts">
+            <article class="part rise">
+                <h3>形象与声音</h3>
+                <p>一张正面照片生成形象，口型跟着音频一帧一帧动。声音可以拿一段参考音频克隆，也可以先用默认的。</p>
+                <div class="frag face">
+                    <img src="assets/lecturer.webp" width="132" height="176" alt="生成的形象预览">
+                    <dl data-ui>
+                        <dt>面部取景</dt><dd>0.62</dd>
+                        <dt>嘴部幅度</dt><dd>1.4</dd>
+                        <dt>声音</dt><dd>参考音频 · 46 秒</dd>
+                        <dt>手势素材</dt><dd>3 组 · 107 帧</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <article class="part rise">
+                <h3>课件与讲稿</h3>
+                <p>PPT 上传后自动分页转图，讲稿里写 [PPT:N] 就翻到第 N 页。手势写成 [GESTURE:id]，放在句首。</p>
+                <div class="frag script" data-ui>
+                    <pre>[PPT:3]
+这一页我们看列表和元组。
+唯一的实质差别是可变性：
+一个能改，一个不能改。
+<em>[GESTURE:explain]</em>
+所以当你要一份不会被误改的序列，
+元组是更稳的选择。
+<em>[QUIZ:3]</em>
+那么，元组能不能被修改？<span class="cursor"></span></pre>
+                </div>
+            </article>
+
+            <article class="part rise">
+                <h3>课堂互动</h3>
+                <p>讲到第 N 页停下出题，学员翻到那一页才开始计时。答完由模型判分，结果存到本机。</p>
+                <div class="frag mark-line" data-ui>
+                    <b>正确</b>
+                    <span>可变性决定能否原地修改，其余差别都是它的推论。</span>
+                    <span>依据：第 3 页第二段。判分用时 1.4 秒，没有卡住视频。</span>
+                    <span>这次作答记入成绩单：第 3 页，正确。</span>
+                </div>
+            </article>
+
+            <article class="part rise">
+                <h3>知识库问答</h3>
+                <p>课程文档传上去就建好索引。学员提问时先查文档再回答，答案带页码和段落号。</p>
+                <div class="frag ask" data-ui>
+                    <p class="q">学员问：什么时候该用元组？</p>
+                    <p class="a">当你希望这份序列在传给别的函数之后不会被改写时。</p>
+                    <p class="src">第 3 页第二段 ·《序列类型》</p>
+                    <p class="q" style="margin-top:16px">学员问：那字典算序列吗？</p>
+                    <p class="a">不算。它按名字取值，不按位置。</p>
+                    <p class="src">第 7 页第一段 ·《集合与字典》</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- 三步 -->
+    <section class="sec" id="steps">
+        <h2 class="rise">从一张照片到一堂课</h2>
+        <p class="rise" style="--i:1">上一步做出来的东西，下一步直接能用。中间不用导出、转换、上传到别的地方。</p>
+
+        <div class="slip rise" style="--i:2">
+            <h3>建形象</h3>
+            <div class="rows">
+                <div class="row"><span class="what">拍一张正面照片，肩膀以上入画</span><span class="dots"></span><span class="val">1 分钟</span></div>
+                <div class="row"><span class="what">校准面部取景与嘴部幅度</span><span class="dots"></span><span class="val">3 分钟</span></div>
+                <div class="row"><span class="what">配一段声音，或直接克隆</span><span class="dots"></span><span class="val">2 分钟</span></div>
+            </div>
+
+            <h3>备课件</h3>
+            <div class="rows">
+                <div class="row"><span class="what">上传 PPTX 或 PDF</span><span class="dots"></span><span class="val">2 分钟</span></div>
+                <div class="row"><span class="what">自动分页转图</span><span class="dots"></span><span class="val">按页数</span></div>
+                <div class="row"><span class="what">讲稿里按页号插标签</span><span class="dots"></span><span class="val">随手</span></div>
+            </div>
+
+            <h3>开讲</h3>
+            <div class="rows">
+                <div class="row"><span class="what">选形象、选讲稿</span><span class="dots"></span><span class="val">1 分钟</span></div>
+                <div class="row"><span class="what">接一路输出：WebRTC、RTMP 或虚拟摄像头</span><span class="dots"></span><span class="val">1 分钟</span></div>
+                <div class="row"><span class="what">点开始</span><span class="dots"></span><span class="val">之后不用人盯</span></div>
+            </div>
+
+            <div class="total"><span>你手上剩下的</span><b>一堂课 + 一份成绩单</b></div>
+        </div>
+    </section>
+
+    <!-- 问题 -->
+    <section class="sec" id="questions">
+        <h2 class="rise">常见问题</h2>
+
+        <div class="qa rise" style="--i:1">
+            <p><b>一定要我本人的声音吗？</b>可以克隆一段参考音频，也可以先用默认声音试讲一堂，觉得行再换。</p>
+            <p><b>讲稿要写多长？</b>一小时课大约九千字，写成纯文本，标签插在中间。模板在工作台里。</p>
+            <p><b>一张照片够吗？</b>正面、肩膀以上、光线均匀就够。侧脸，或者远景里只占一小块的脸，口型会糊。</p>
+            <p><b>断网还能用吗？</b>推理在本机跑，断网不影响讲课；语音合成默认走在线接口，要完全离线得换成本地引擎。</p>
+            <p><b>学员在手机上能看吗？</b>能。输出是 WebRTC 流，浏览器直接播；也可以推 RTMP，或者走虚拟摄像头进会议软件。</p>
+            <p><b>出题会打断讲课吗？</b>停在那一页，不另开窗口。学员点「继续播放」就往下走，这一次不算没答。</p>
+            <p><b>成绩存在哪里？</b>存在本机，可以导出成表。没有人替你上传到任何地方。</p>
+            <p><b>讲稿里的标签要背吗？</b>不用。工作台的按钮把标签直接插到光标处，你只管写话。</p>
+            <p><b>一节课能插几道题？</b>不限，按页码各插各的。同一页插两道，就按顺序停两次。</p>
+            <p><b>改了讲稿要不要重新生成形象？</b>不用。形象、课件、讲稿是三份独立的东西，改哪份都不牵动另外两份。</p>
+            <p><b>成绩单长什么样？</b>按人、按题列出对错和用时，导出成表就能直接算平时分。</p>
+            <p><b>装在什么机器上？</b>一台带显卡的机器，单机跑，不用另配服务器。</p>
+        </div>
+    </section>
+
+    <footer class="foot">
+        <div class="mark rise">知课</div>
+        <p class="note rise" style="--i:1">微课数字人，本地部署。形象、课件、讲稿、成绩都留在这一台机器上。KnowTalking 内核。</p>
+    </footer>
+
+</main>
+
+<script>
+/* 演示面板：拖动讲稿位置，看它停在哪一页。
+   没有这个脚本时，页面照常显示第 3 页停下出题的状态 —— 那本来就是这一节要说的话。 */
+(function () {
+    var pages = [
+        { t: '这门课讲什么', c: '三段序列，三种写法，先看它们共有的部分。',
+          p: ['序列是一串有序的值', '都能按下标取值', '都能切片'] },
+        { t: '切片与遍历', c: '切片不复制元素，它拿到的是同一份数据的窗口。',
+          p: ['seq[a:b] 取左闭右开区间', '遍历顺序与存储顺序一致', '负下标从末尾数起'] },
+        { t: '列表与元组', c: '唯一的实质差别是可变性：一个能改，一个不能改。',
+          p: ['都能按下标取值', '都能切片，都能遍历', '区别只在可变性'] },
+        { t: '什么时候用元组', c: '希望这份序列交出去之后不会被改写的时候。',
+          p: ['当作函数的多个返回值', '当作字典的键', '当作常量表'] },
+        { t: '常见错误', c: '把可变对象当默认参数，只在第一次调用时生效。',
+          p: ['默认参数只求值一次', 'append 返回的是 None', '切片不会越界报错'] },
+        { t: '字符串也是序列', c: '所以上面这些操作，字符串全都有，只是不能改。',
+          p: ['切片、遍历、in 判断', '不可变，拼接会新建', '编码问题另讲'] },
+        { t: '集合与字典', c: '它们不是序列，因为不按下标存。',
+          p: ['按值而不是按位置找', '顺序不保证', '查找是常数时间'] },
+        { t: '小结', c: '选序列类型，先问它是改还是不改。',
+          p: ['要改，用列表', '不改，用元组', '要按名字取，用字典'] }
+    ];
+
+    var at = document.getElementById('at');
+    var out = document.getElementById('atOut');
+    var pageNo = document.getElementById('pageNo');
+    var flag = document.getElementById('flag');
+    var title = document.getElementById('slideTitle');
+    var points = document.getElementById('slidePoints');
+    var cap = document.getElementById('capText');
+    var quiz = document.getElementById('quiz');
+    if (!at || !title) return;
+
+    var QUIZ_AT = 3;
+
+    function render(n) {
+        var d = pages[n - 1];
+        pageNo.textContent = '第 ' + n + ' 页 / 共 ' + pages.length + ' 页';
+        out.textContent = '第 ' + n + ' 页';
+        title.textContent = d.t;
+        points.innerHTML = d.p.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+        cap.textContent = d.c;
+        var paused = n === QUIZ_AT;
+        quiz.style.display = paused ? '' : 'none';
+        flag.textContent = paused ? '已停下 · 等人作答' : '讲课中';
+    }
+
+    at.addEventListener('input', function () { render(parseInt(at.value, 10)); });
+    render(parseInt(at.value, 10));
+})();
+
+/* 入场：默认可见，脚本确认能跑才把元素藏起来。
+   只动 opacity 与 translateY，进视口一次即解绑。 */
+(function () {
+    var root = document.documentElement;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = [].slice.call(document.querySelectorAll('.rise'));
+    if (reduce || !items.length) return;
+
+    root.classList.add('js');
+
+    var ticking = false;
+    function paint() {
+        var h = window.innerHeight;
+        for (var i = items.length - 1; i >= 0; i--) {
+            var el = items[i];
+            var r = el.getBoundingClientRect();
+            if (r.top < h && r.bottom > 0) {
+                el.classList.add('in');
+                items.splice(i, 1);
+            }
+        }
+        ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+        if (!ticking) { ticking = true; requestAnimationFrame(paint); }
+    }, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# KnowTalk governance pre-commit hook.
+# Managed by scripts/setup-governance.sh — DO NOT edit by hand; edit the source
+# under scripts/git-hooks/ and re-run the setup script.
+#
+# Gate: OpenSpec specs + active changes MUST validate before a commit is allowed.
+# Fails OPEN on its own errors so the user is never blocked by a broken hook.
+set -uo pipefail
+trap 'echo "[governance] hook error (fail-open); allowing commit."; exit 0' ERR
+
+if ! command -v openspec >/dev/null 2>&1; then
+  echo "[governance] openspec CLI not found; skipping gate (fail-open)."
+  exit 0
+fi
+
+echo "[governance] Validating OpenSpec specs + active changes..."
+if ! out=$(openspec validate --all 2>&1); then
+  echo "[governance] FAILED: openspec validate --all"
+  echo "$out" | tail -n 25
+  echo "[governance] Fix the spec/change, then commit again."
+  echo "[governance] (Use 'git commit --no-verify' only with a documented reason.)"
+  exit 1
+fi
+
+echo "[governance] OpenSpec gate passed."
+exit 0

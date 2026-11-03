@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知课 KnowTalking — 桌面版应用界面设计稿</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312253D'/%3E%3Ctext x='32' y='42' font-size='28' text-anchor='middle' fill='%23FBF8F1' font-family='sans-serif'%3E知%3C/text%3E%3C/svg%3E">
+<style>
+/* ============ 设计稿展示层（非应用本体） ============ */
+:root{
+  --bg:#FBF8F1; --card:#FFFDF8; --card-alt:#FAF6EC;
+  --line:#D8CFB8; --line-soft:#E6E1D2; --line-strong:#CBBFA6;
+  --ink:#12253D; --green:#1D6B4A; --green-soft:#3D5A3F;
+  --muted:#968F80; --muted-2:#6C6860; --danger:#83302A;
+  --stage-bg:#E8E5DE;
+  --f: "Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Noto Sans SC",system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:var(--f);color:var(--ink);background:var(--stage-bg);
+  -webkit-font-smoothing:antialiased;overflow:auto}
+.page{min-height:100%;display:flex;flex-direction:column;align-items:center;padding:16px 16px 40px}
+.present{width:100%;max-width:1560px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.presbar{width:100%;max-width:1460px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;
+  background:var(--card);border:1px solid var(--line);border-radius:10px}
+.presbar .logo{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap}
+.presbar .logo em{font-style:normal;color:var(--green)}
+.presbar .sp{flex:1}
+.vswitch{display:flex;gap:6px;flex-wrap:wrap}
+.vswitch button{border:1px solid var(--line);background:var(--card);color:var(--muted-2);
+  font:500 13px/1 var(--f);padding:8px 14px;border-radius:7px;cursor:pointer;transition:all .15s}
+.vswitch button:hover{border-color:var(--line-strong);color:var(--ink)}
+.vswitch button.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.presbar .hint{font-size:12px;color:var(--muted)}
+/* ============ 应用窗口框 ============ */
+.appwin{background:var(--card);border:1px solid #CFC8B8;border-radius:8px;overflow:hidden;
+  box-shadow:0 18px 40px rgba(18,37,61,.14);transform-origin:top left}
+.winbar{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  background:linear-gradient(#F7F5F0,#ECE8DE);border-bottom:1px solid var(--line);user-select:none}
+.winbar .dot{width:11px;height:11px;border-radius:50%}
+.winbar .dot.red{background:#E36C5B}.winbar .dot.yellow{background:#E4B64E}.winbar .dot.green{background:#4FA073}
+.winbar .appname{font-size:12px;color:var(--muted-2);margin-left:6px;flex:1;white-space:nowrap;overflow:hidden}
+.winbar .winctl{display:flex;gap:14px;font-size:12px;color:var(--muted-2)}
+.winbar .winctl span{cursor:pointer}
+/* 视图容器 */
+.view{display:none;width:100%;height:100%}
+.view.on{display:block}
+/* ============ 通用组件 ============ */
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);
+  font:500 13px/1 var(--f);padding:9px 20px;border-radius:6px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn:hover{border-color:var(--line-strong);background:var(--card-alt)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#F7F4EA}
+.btn.primary:hover{background:#1A314D}
+.btn.ghost{background:transparent;border-color:var(--line-soft);color:var(--muted-2)}
+.btn.sm{padding:6px 12px;font-size:12px}
+.input{width:100%;border:1px solid var(--line);border-radius:6px;background:var(--card);
+  font:13px/1.4 var(--f);color:var(--ink);padding:9px 12px;outline:none}
+.input::placeholder{color:#BCB5A6}
+.input:focus{border-color:var(--ink)}
+select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236C6860' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.dot-st{width:8px;height:8px;border-radius:50%;display:inline-block;vertical-align:middle}
+.dot-st.gray{background:#B9B09C}.dot-st.green{background:#2E8B5F}.dot-st.red{background:var(--danger)}
+.tx-muted{color:var(--muted)}
+.tx-green{color:var(--green)}
+.icon{width:16px;height:16px;flex:none;vertical-align:-3px}
+.icon.sm{width:14px;height:14px;vertical-align:-2px}
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#F7F4EA;font-size:13px;padding:10px 18px;border-radius:8px;
+  opacity:0;pointer-events:none;transition:all .25s;z-index:99;box-shadow:0 8px 24px rgba(18,37,61,.3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ============ 视图 1：登录页 ============ */
+.v-login{display:none}
+#v-login.on .v-login{display:flex}
+.v-login{height:100%;display:flex}
+.login-left{flex:0 0 52%;background:var(--bg);border-right:1px solid var(--line-soft);
+  padding:34px 44px 30px;display:flex;flex-direction:column;position:relative}
+.login-left .wordmark{font-size:19px;font-weight:700;letter-spacing:.5px}
+.login-left .wordmark span{color:var(--green)}
+.login-left .tag{display:inline-block;margin-left:8px;font-size:11px;color:var(--muted);
+  border:1px solid var(--line);border-radius:4px;padding:2px 6px;vertical-align:3px}
+.login-left .hero{margin-top:56px}
+.login-left h1{font-size:30px;line-height:1.5;font-weight:700}
+.login-left .sub{margin-top:14px;font-size:13px;line-height:1.9;color:var(--muted-2);max-width:430px}
+.feat-list{margin-top:34px;display:flex;flex-direction:column;gap:16px}
+.feat{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--ink)}
+.feat .f-ic{width:30px;height:30px;border-radius:7px;background:var(--card);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;color:var(--green)}
+.login-left .local{margin-top:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.login-right{flex:1;background:var(--card);display:flex;align-items:center;justify-content:center}
+.login-form{width:min(320px,80%)}
+.login-form h2{font-size:20px;font-weight:700}
+.login-form .h-sub{margin-top:6px;font-size:12px;color:var(--muted)}
+.login-form .field{margin-top:18px}
+.login-form .field label{display:block;font-size:12px;color:var(--muted-2);margin-bottom:6px}
+.login-form .btn{width:100%;margin-top:22px;padding:11px 0;font-size:14px}
+.login-div{margin:22px 0 14px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px}
+.login-div::before,.login-div::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+.wechat{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 0;
+  border:1px dashed var(--line);border-radius:6px;background:var(--card-alt);color:var(--muted-2);
+  font-size:12px;cursor:pointer}
+.wechat .soon{font-size:10px;color:var(--green);border:1px solid var(--line-strong);border-radius:3px;padding:1px 4px}
+.forgot{text-align:center;margin-top:16px;font-size:12px;color:var(--green);cursor:pointer}
+/* ============ 视图 2：工作台 ============ */
+.v-wb{display:none;height:100%;flex-direction:column}
+#v-workbench.on .v-wb{display:flex}
+.wb-top{height:46px;flex:none;display:flex;align-items:center;gap:14px;padding:0 16px;
+  background:var(--bg);border-bottom:1px solid var(--line-soft)}
+.wb-top .wm{font-size:15px;font-weight:700}
+.wb-top .wm span{color:var(--green)}
+.wb-top .crumb{font-size:12px;color:var(--muted);border:1px solid var(--line-soft);border-radius:4px;padding:2px 8px}
+.wb-top .right{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted-2)}
+.wb-top .right .sid{font-family:Consolas,monospace}
+.wb-top .btn{border:none;background:transparent;padding:6px;border-radius:5px}
+.wb-main{flex:1;display:flex;min-height:0}
+.wb-nav{width:196px;flex:none;background:var(--card);border-right:1px solid var(--line-soft);
+  padding:12px 8px;overflow:auto}
+.nav-group{font-size:11px;color:var(--muted);padding:10px 10px 4px;letter-spacing:.08em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;
+  font-size:13px;color:var(--ink);cursor:pointer;position:relative;margin-top:1px}
+.nav-item:hover{background:var(--card-alt)}
+.nav-item.on{background:var(--bg);font-weight:600}
+.nav-item.on::before{content:"";position:absolute;left:-8px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--green)}
+.nav-item .none-tag{font-size:10px;color:var(--muted);border:1px solid var(--line-soft);border-radius:3px;padding:1px 4px;margin-left:auto}
+.wb-center{flex:1;min-width:0;background:var(--bg);padding:26px 30px;overflow:auto;display:flex;flex-direction:column;gap:20px}
+.wb-center h3{font-size:20px;font-weight:700}
+.wb-center .lead{font-size:12.5px;color:var(--muted-2);line-height:1.8;margin-top:4px}
+.cfg-card{background:var(--card);border:1px solid var(--line-soft);border-radius:8px;padding:20px 22px}
+.cfg-card .card-t{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.cfg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}
+.cfg-grid .field label{display:block;font-size:12px;color:var(--muted-2);margin-bottom:6px}
+.cfg-status{display:flex;align-items:center;gap:8px;margin-top:18px;font-size:12.5px;color:var(--danger)}
+.wb-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 0 2px}
+.wb-cta .btn{padding:10px 34px;font-size:14px}
+.wb-cta .stat{font-size:12px;color:var(--muted-2)}
+.wb-cta .stat b{font-family:Consolas,monospace;font-weight:400}
+.wb-right{width:262px;flex:none;background:var(--card);border-left:1px solid var(--line-soft);padding:18px 16px;display:flex;flex-direction:column}
+.wb-right h4{font-size:14px;font-weight:600}
+.wb-right .auto{margin-top:3px;font-size:11px;color:var(--muted)}
+.live-row{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;
+  border-bottom:1px dashed var(--line-soft);font-size:12.5px}
+.live-row .k{color:var(--muted-2)}
+.live-row .v{font-weight:600}
+.live-row .v.mono{font-family:Consolas,monospace;font-weight:400}
+.live-hint{margin-top:auto;font-size:11.5px;color:var(--muted);line-height:1.7;
+  background:var(--card-alt);border:1px dashed var(--line);border-radius:6px;padding:10px 12px}
+/* ============ 视图 3：数字人展示 ============ */
+.v-display{display:none;height:100%;flex-direction:column}
+#v-display.on .v-display{display:flex}
+.dp-top{height:44px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:var(--card);border-bottom:1px solid var(--line-soft)}
+.dp-top .course{font-size:14px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-main{flex:1;display:flex;min-height:0}
+.dp-left{width:196px;flex:none;background:var(--bg);border-right:1px solid var(--line-soft);
+  padding:16px 14px;display:flex;flex-direction:column;gap:12px}
+.dp-stage{flex:1;background:#101F33;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden}
+.dp-stage img{height:72%;max-width:88%;object-fit:contain;border-radius:14px;filter:saturate(1.05)}
+.dp-stage .cap{margin-top:16px;font-size:12px;color:#8FA0B5}
+.dp-stage .grid-bg{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:radial-gradient(circle at 50% 42%,rgba(143,160,181,.10),transparent 62%)}
+.dp-right{width:262px;flex:none;background:var(--card);border-left:1px solid var(--line-soft);
+  padding:18px 16px;display:flex;flex-direction:column;gap:12px}
+.dp-right h4{font-size:14px;font-weight:600}
+.ask-box{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.ask-input{resize:none;height:104px;width:100%;border:1px solid var(--line);border-radius:6px;background:var(--card);
+  font:13px/1.6 var(--f);color:var(--ink);padding:10px 12px;outline:none}
+.ask-input:focus{border-color:var(--ink)}
+.ask-input::placeholder{color:#BCB5A6}
+.ask-row{display:flex;gap:8px;align-items:center}
+.ask-row .input{flex:1}
+.dp-note{margin-top:auto;font-size:11px;color:var(--muted);text-align:center}
+/* ============ 视图 4：设计规格 ============ */
+.v-spec{display:none;height:100%;overflow:auto;background:var(--card)}
+#v-spec.on .v-spec{display:block}
+.spec-wrap{padding:28px 34px 40px;display:flex;flex-direction:column;gap:22px}
+.spec-wrap h3{font-size:19px;font-weight:700}
+.spec-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.spec-card{background:var(--card-alt);border:1px solid var(--line-soft);border-radius:8px;padding:16px 18px}
+.spec-card h5{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.swatch{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px}
+.swatch .c{width:26px;height:26px;border-radius:6px;border:1px solid var(--line)}
+.swatch code{font-family:Consolas,monospace;color:var(--muted-2);font-size:11px}
+.type-row{display:flex;align-items:baseline;gap:12px;padding:5px 0;font-size:13px}
+.type-row .px{font-family:Consolas,monospace;font-size:11px;color:var(--muted);width:46px;flex:none}
+.type-row .demo{font-weight:600}
+.map-row{display:flex;gap:10px;padding:7px 0;font-size:12.5px;border-bottom:1px dashed var(--line-soft)}
+.map-row:last-child{border-bottom:none}
+.map-row .from{color:var(--muted-2);width:48%;flex:none}
+.map-row .arr{color:var(--green);width:4%}
+.map-row .to{font-weight:600}
+.spec-note{margin-top:4px;font-size:12px;color:var(--muted);line-height:1.9;border-left:3px solid var(--line-strong);
+  padding-left:14px}
+@media (max-width:900px){
+  .spec-cols{grid-template-columns:1fr}
+  .login-left .hero{margin-top:34px}
+  .presbar .hint{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="present">
+    <div class="presbar">
+      <div class="logo">知课 <em>KnowTalking</em> · 桌面版界面设计稿</div>
+      <div class="sp"></div>
+      <div class="vswitch" id="vswitch">
+        <button data-v="v-login" class="on">登录页</button>
+        <button data-v="v-workbench">工作台 · 开播</button>
+        <button data-v="v-display">数字人展示</button>
+        <button data-v="v-spec">设计规格</button>
+      </div>
+      <span class="hint">参考 LiveTalking-main 启动后的网页界面 · 桌面化适配原型</span>
+    </div>
+
+    <div class="appwin" id="appwin">
+      <div class="winbar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <span class="appname">知课 KnowTalking — 桌面版</span>
+        <span class="winctl"><span title="最小化">—</span><span title="最大化">□</span><span title="关闭">✕</span></span>
+      </div>
+
+      <!-- ===== 视图：登录页 ===== -->
+      <section class="view" id="v-login" data-w="1280" data-h="800">
+        <div class="v-login">
+          <div class="login-left">
+            <div class="wordmark">知课<span>KnowTalking</span><span class="tag">桌面版</span></div>
+            <div class="hero">
+              <h1>给课件开口说话</h1>
+              <p class="sub">数字人照着讲稿讲，课件翻到哪页就讲到哪页；讲到重点停下来提问，答完接着讲。</p>
+            </div>
+            <div class="feat-list">
+              <div class="feat"><span class="f-ic"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5-6-3.5z" fill="currentColor" stroke="none"/></svg></span>形象、音色、动作一套配好</div>
+              <div class="feat"><span class="f-ic"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span>课件与知识库各自成库</div>
+              <div class="feat"><span class="f-ic"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="5"/></svg></span>一次开播，全程自动</div>
+            </div>
+            <div class="local"><svg class="icon sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>本地部署 · 数据不出机器</div>
+          </div>
+          <div class="login-right">
+            <div class="login-form">
+              <h2>登录</h2>
+              <div class="h-sub">用本机账号登录。</div>
+              <div class="field"><label>用户名</label><input class="input" value="desk_test"></div>
+              <div class="field"><label>密码</label><input class="input" type="password" value="test123456"></div>
+              <button class="btn primary" data-toast="原型演示：登录动作将在实现版本中校验账号">登录</button>
+              <div class="login-div">或</div>
+              <div class="wechat" data-toast="扫码能力尚未接通，请先用账号密码登录。">
+                <svg class="icon sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 7h6v10H9z"/><path d="M12 7V4h5v3M17 10v4M12 17v3h5v-3"/></svg>
+                微信扫码登录<span class="soon">即将开放</span>
+              </div>
+              <div class="forgot" data-toast="原型演示：忘记密码（可跳转重置流程）">忘记密码？</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 视图：工作台 · 开播 ===== -->
+      <section class="view" id="v-workbench" data-w="1440" data-h="860">
+        <div class="v-wb">
+          <div class="wb-top">
+            <div class="wm">知课<span>KnowTalking</span></div>
+            <span class="crumb">工作台</span>
+            <div class="right">
+              <span><span class="dot-st gray"></span> 未连接</span>
+              <span class="sid">SID:-</span>
+              <button class="btn" data-toast="原型演示：设置面板（音色、账号、主服务）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09a1.7 1.7 0 001.55-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34h.01a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87v.01a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="wb-main">
+            <div class="wb-nav">
+              <div class="nav-item on" data-toast="开播面板（当前）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg>开播
+              </div>
+              <div class="nav-item" data-toast="讲稿编辑器（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>讲稿
+              </div>
+              <div class="nav-item" data-toast="提问配置（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 014.7 1c0 1.5-2.2 2-2.2 3.5"/><path d="M12 17h.01"/></svg>提问
+              </div>
+              <div class="nav-item" data-toast="形象管理（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0114 0"/></svg>形象
+              </div>
+              <div class="nav-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>课件<span class="none-tag">暂无</span></div>
+              <div class="nav-item"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>讲稿<span class="none-tag">暂无</span></div>
+              <div class="nav-group">素材与设置</div>
+              <div class="nav-item" data-toast="素材与设置（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>素材与设置
+              </div>
+              <div class="nav-item" data-toast="形象生成（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.1 5.2L20 10l-5.9 1.8L12 17l-2.1-5.2L4 10l5.9-1.8z"/></svg>形象生成
+              </div>
+              <div class="nav-item" data-toast="课程知识库（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>课程知识库
+              </div>
+              <div class="nav-item" data-toast="管理后台（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>管理后台
+              </div>
+              <div class="nav-item" data-toast="接口与参数（原型占位）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h2M7 12h4"/><path d="M14 13h3M14 16h3"/></svg>接口与参数
+              </div>
+            </div>
+            <div class="wb-center">
+              <div>
+                <h3>开播</h3>
+                <p class="lead">选好形象与声音，一键连接。状态和会话号在页面顶部，切到别的面板也不会消失。</p>
+              </div>
+              <div class="cfg-card">
+                <div class="card-t"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5-6-3.5z" fill="currentColor" stroke="none"/></svg>数字人连接</div>
+                <div class="cfg-grid">
+                  <div class="field"><label>Avatar ID</label><input class="input" value="加载中..." disabled></div>
+                  <div class="field"><label>参考音频</label>
+                    <select class="input"><option>系统音色</option><option>克隆音色 chen</option><option>克隆音色 musetalk_ke</option></select>
+                  </div>
+                  <div class="field"><label>参考音频文本</label><input class="input" placeholder="参考文本（可选）"></div>
+                  <div class="field"><label>连接后显示 PPT</label>
+                    <select class="input"><option>不指定 PPT</option><option>从课件库选择</option></select>
+                  </div>
+                  <div class="field"><label>连接后播放预设</label>
+                    <select class="input"><option>不自动播放</option><option>播放预设讲稿</option></select>
+                  </div>
+                </div>
+                <div class="cfg-status"><span class="dot-st gray"></span>未连接 · 未选择数字人</div>
+              </div>
+              <div class="wb-cta">
+                <button class="btn primary" data-toast="原型演示：开始连接（WebRTC offer 将在此发起）">开始连接</button>
+                <span class="stat"><span class="dot-st gray"></span> 未连接 · <b>SID:-</b> 等待连接数字人</span>
+              </div>
+            </div>
+            <div class="wb-right">
+              <h4>开播实况</h4>
+              <div class="auto">连上之后自动更新</div>
+              <div style="margin-top:10px">
+                <div class="live-row"><span class="k">连接</span><span class="v">未连接</span></div>
+                <div class="live-row"><span class="k">会话</span><span class="v mono">SID:-</span></div>
+                <div class="live-row"><span class="k">播报</span><span class="v">静默</span></div>
+                <div class="live-row"><span class="k">形象</span><span class="v">加载中...</span></div>
+                <div class="live-row"><span class="k">音色</span><span class="v">系统音色</span></div>
+                <div class="live-row"><span class="k">讲稿</span><span class="v mono">0 字</span></div>
+                <div class="live-row"><span class="k">提问</span><span class="v mono">1 组</span></div>
+              </div>
+              <div class="live-hint">还没有连上数字人。连上之后，这里会跟着中央的变化实时更新。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 视图：数字人展示 ===== -->
+      <section class="view" id="v-display" data-w="1280" data-h="800">
+        <div class="v-display">
+          <div class="dp-top">
+            <span class="course">Python 基础知识——铁路客流量统计</span>
+            <button class="btn ghost sm" data-toast="原型演示：暂停播放">暂停播放</button>
+            <span class="btn ghost sm" style="cursor:default"><span class="dot-st gray"></span> 等待会话</span>
+            <button class="btn sm" data-goto="v-workbench">返回工作台</button>
+          </div>
+          <div class="dp-main">
+            <div class="dp-left">
+              <button class="btn" style="justify-content:flex-start;display:flex;gap:8px" data-toast="原型演示：开始录制（生成课堂录像）">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/></svg>录制
+              </button>
+              <div style="font-size:12px;color:var(--muted-2);line-height:1.7;display:flex;gap:8px;margin-top:4px">
+                <svg class="icon sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--muted)"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                <span>未获取到会话，请从控制台打开本页。</span>
+              </div>
+            </div>
+            <div class="dp-stage">
+              <div class="grid-bg"></div>
+              <img src="assets/lecturer.webp" alt="数字人形象">
+              <div class="cap">等待数字人播报时自动切换</div>
+            </div>
+            <div class="dp-right">
+              <div class="ask-box">
+                <h4>向数字人提问</h4>
+                <button class="btn ghost sm" data-toast="原型演示：导出课堂记录">导出记录</button>
+              </div>
+              <textarea class="ask-input" placeholder="输入你想问的问题..."></textarea>
+              <div class="ask-row">
+                <select class="input"><option>Chat LLM：默认模型</option><option>Chat LLM：备用模型</option></select>
+                <button class="btn primary" data-toast="原型演示：提交提问（LLM 回复由数字人朗读）">提问</button>
+              </div>
+              <div class="dp-note">内容由数字人生成，仅供参考</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 视图：设计规格 ===== -->
+      <section class="view" id="v-spec" data-w="1280" data-h="800">
+        <div class="v-spec">
+          <div class="spec-wrap">
+            <h3>桌面版设计规格（供 desktop_app.py 实现对齐）</h3>
+            <div class="spec-cols">
+              <div class="spec-card">
+                <h5><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>配色令牌</h5>
+                <div class="swatch"><span class="c" style="background:#FBF8F1"></span>主背景 <code>#FBF8F1</code></div>
+                <div class="swatch"><span class="c" style="background:#FFFDF8;border-color:#D8CFB8"></span>面板 / 卡片 <code>#FFFDF8</code></div>
+                <div class="swatch"><span class="c" style="background:#E6E1D2"></span>边框 <code>#E6E1D2</code> / <code>#D8CFB8</code></div>
+                <div class="swatch"><span class="c" style="background:#12253D"></span>墨色·主按钮 <code>#12253D</code></div>
+                <div class="swatch"><span class="c" style="background:#1D6B4A"></span>强调绿·状态 <code>#1D6B4A</code></div>
+                <div class="swatch"><span class="c" style="background:#968F80"></span>次要文字 <code>#968F80</code></div>
+                <div class="swatch"><span class="c" style="background:#83302A"></span>警示 / 断开 <code>#83302A</code></div>
+              </div>
+              <div class="spec-card">
+                <h5><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>字体与字号</h5>
+                <div class="type-row"><span class="px">19</span><span class="demo">知课 KnowTalking（顶栏 / 标题）</span></div>
+                <div class="type-row"><span class="px">14-15</span><span class="demo">面板标题、页签</span></div>
+                <div class="type-row"><span class="px">13</span><span class="demo">正文、表单、导航</span></div>
+                <div class="type-row"><span class="px">12</span><span class="demo">辅助说明、状态、SID</span></div>
+                <div class="type-row"><span class="px">11</span><span class="demo">页脚提示、暂无标签</span></div>
+                <div style="margin-top:10px;font-size:12px;color:var(--muted-2);line-height:1.8">字体：系统无衬线栈（微软雅黑 UI / PingFang SC），不引入网络字体；SID、字数等数据用等宽 Consolas。</div>
+              </div>
+              <div class="spec-card">
+                <h5><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M9 9h6M9 13h6"/></svg>网页 → 桌面映射</h5>
+                <div class="map-row"><span class="from">浏览器导航 / 页面跳转</span><span class="arr">→</span><span class="to">应用顶栏常驻 + 视图切换</span></div>
+                <div class="map-row"><span class="from">首页「进入工作台」</span><span class="arr">→</span><span class="to">登录后直接进入工作台</span></div>
+                <div class="map-row"><span class="from">工作台左侧功能导航</span><span class="arr">→</span><span class="to">侧栏页签（开播 / 讲稿 / 提问…）</span></div>
+                <div class="map-row"><span class="from">开播实况面板</span><span class="arr">→</span><span class="to">右侧常驻面板，连上即刷新</span></div>
+                <div class="map-row"><span class="from">展示页（浏览器新页）</span><span class="arr">→</span><span class="to">独立窗口 / 视图，顶栏可返回</span></div>
+                <div class="map-row"><span class="from">状态、SID</span><span class="arr">→</span><span class="to">顶栏常驻，切页不丢</span></div>
+              </div>
+            </div>
+            <div class="spec-note">组件规范：主按钮 = 墨色底 <code>#12253D</code>、6px 圆角、14px 字号；输入框 / 下拉 = 白底 <code>#FFFDF8</code>、1px <code>#D8CFB8</code> 边框、聚焦变墨色；状态点 8px 圆点（灰=未连接，绿=已连接，红=异常）；侧栏激活项 = 米白底 + 左缘 3px 绿色条。窗口尺寸建议 1280×800（工作台 1440×860 起步）。</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var appwin = document.getElementById('appwin');
+  var views = Array.prototype.slice.call(document.querySelectorAll('.view'));
+  var btns = Array.prototype.slice.call(document.querySelectorAll('#vswitch button'));
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+  function fit(){
+    var cur = views.filter(function(v){ return v.classList.contains('on'); })[0];
+    if(!cur) return;
+    var w = parseInt(cur.dataset.w,10), h = parseInt(cur.dataset.h,10);
+    var header = document.querySelector('.presbar').getBoundingClientRect().height;
+    var s = Math.min((window.innerWidth - 40) / w, (window.innerHeight - header - 70) / h, 1);
+    appwin.style.width = w + 'px';
+    appwin.style.height = h + 'px';
+    appwin.style.transform = 'scale(' + s + ')';
+    appwin.style.margin = '0 ' + ((window.innerWidth - w * s - 40) / 2) + 'px';
+    appwin.parentElement.style.minHeight = (h * s) + 'px';
+  }
+  function go(id){
+    views.forEach(function(v){ v.classList.remove('on'); });
+    btns.forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v') === id); });
+    document.getElementById(id).classList.add('on');
+    fit();
+    if(location.hash !== '#' + id){ history.replaceState(null, '', '#' + id); }
+  }
+  window.addEventListener('hashchange', function(){
+    var h = location.hash.replace('#','');
+    if(h && document.getElementById(h)){ go(h); }
+  });
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){ go(b.getAttribute('data-v')); });
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-toast]');
+    if(t){ toast(t.getAttribute('data-toast') || '原型演示'); return; }
+    var g = e.target.closest('[data-goto]');
+    if(g){ go(g.getAttribute('data-goto')); }
+  });
+  window.addEventListener('resize', fit);
+  var initHash = (location.hash || '').replace('#', '');
+  go(initHash && document.getElementById(initHash) ? initHash : 'v-login');
+})();
+</script>
+</body>
+</html>

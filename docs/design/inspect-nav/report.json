@@ -1,0 +1,1721 @@
+{
+ "url": "http://127.0.0.1:8899/index.html",
+ "at": "2026-10-25T12:22:07.579Z",
+ "allow": [
+  "few-pictures",
+  "still-page",
+  "no-footage"
+ ],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 7,
+   "filled": [
+    0.17,
+    0.31,
+    0.36,
+    0.34,
+    0.34,
+    0.17,
+    0.23
+   ],
+   "motion": {
+    "elements": 27,
+    "css": 2,
+    "transitions": 25,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 5472,
+     "screens": 6.1,
+     "words": 192,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 6,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 4,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "把一份讲稿， 讲成一堂课。",
+     "words": 2,
+     "chars": 13,
+     "lines": 2,
+     "size": 74.9,
+     "vw": 5.2,
+     "font": "Georgia",
+     "weight": 700,
+     "tracking": -0.01,
+     "leading": 1.12,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.47,
+     "top": 204,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "把一份讲稿， 讲成一堂课。",
+     "words": 2,
+     "lines": 2,
+     "size": 74.9,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "把一份讲稿， 讲成一堂课。",
+      "words": 2,
+      "chars": 13,
+      "lines": 2,
+      "size": 74.9,
+      "vw": 5.2,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.01,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.47,
+      "top": 204,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "讲到第 3 页，它会停",
+      "words": 3,
+      "chars": 11,
+      "lines": 1,
+      "size": 33.1,
+      "vw": 2.3,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.47,
+      "top": 660,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "一堂课的四个零件",
+      "words": 1,
+      "chars": 8,
+      "lines": 1,
+      "size": 33.1,
+      "vw": 2.3,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.47,
+      "top": 1491,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "从一张照片到一堂课",
+      "words": 1,
+      "chars": 9,
+      "lines": 1,
+      "size": 33.1,
+      "vw": 2.3,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.47,
+      "top": 3252,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "常见问题",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 33.1,
+      "vw": 2.3,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.47,
+      "top": 4180,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "知课",
+      "words": 1,
+      "chars": 2,
+      "lines": 1,
+      "size": 74.9,
+      "vw": 5.2,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0.02,
+      "leading": 1.1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.47,
+      "top": 5222,
+      "tag": "span",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 6,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.95,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.05,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      15,
+      16,
+      19,
+      22,
+      33,
+      75
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 74.9,
+      "vw": 5.2,
+      "font": "Georgia",
+      "text": "把一份讲稿，讲成一堂课。"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.06,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fbf8f1",
+     "bodyBgHsl": {
+      "h": 42,
+      "s": 0.56,
+      "l": 0.96
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f4efe2",
+       "top": 3424,
+       "hsl": {
+        "h": 43,
+        "s": 0.45,
+        "l": 0.92
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#211f1a",
+       "share": 0.61
+      },
+      {
+       "color": "#6c6860",
+       "share": 0.2
+      },
+      {
+       "color": "#e6e1d2",
+       "share": 0.06
+      },
+      {
+       "color": "#d3dae4",
+       "share": 0.04
+      },
+      {
+       "color": "#e0c274",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#1f3b63",
+      "hsl": {
+       "h": 215,
+       "s": 0.52,
+       "l": 0.25
+      },
+      "fg": "#fbf8f1"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 36,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "进入工作台",
+      "进入工作台"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 26,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 5472,
+    "margins": {
+     "left": 380,
+     "right": 398
+    },
+    "sections": [],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "把一份讲稿， 讲成一堂课。",
+      "size": 75,
+      "top": 204,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 380,
+      "n": 10
+     },
+     {
+      "x": 406,
+      "n": 3
+     }
+    ],
+    "leftBlocks": 13,
+    "bodySize": 19,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.25,
+    "voidBox": {
+     "x": 1020,
+     "y": 120,
+     "w": 420,
+     "h": 780
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 6,
+   "filled": [
+    0.36,
+    0.65,
+    0.63,
+    0.71,
+    0.28,
+    0.29
+   ],
+   "motion": {
+    "elements": 27,
+    "css": 2,
+    "transitions": 25,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 5509,
+     "screens": 5.4,
+     "words": 191,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 6,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 5,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "把一份讲稿， 讲成一堂课。",
+     "words": 2,
+     "chars": 13,
+     "lines": 2,
+     "size": 39.9,
+     "vw": 5.2,
+     "font": "Georgia",
+     "weight": 700,
+     "tracking": -0.01,
+     "leading": 1.12,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.89,
+     "top": 243,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "把一份讲稿， 讲成一堂课。",
+     "words": 2,
+     "lines": 2,
+     "size": 39.9,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "把一份讲稿， 讲成一堂课。",
+      "words": 2,
+      "chars": 13,
+      "lines": 2,
+      "size": 39.9,
+      "vw": 5.2,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.01,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 243,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "讲到第 3 页，它会停",
+      "words": 3,
+      "chars": 11,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 607,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "一堂课的四个零件",
+      "words": 1,
+      "chars": 8,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 1621,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "从一张照片到一堂课",
+      "words": 1,
+      "chars": 9,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 3359,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "常见问题",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 4264,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "知课",
+      "words": 1,
+      "chars": 2,
+      "lines": 1,
+      "size": 39.9,
+      "vw": 5.2,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0.02,
+      "leading": 1.1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 5297,
+      "tag": "span",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 6,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.95,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.05,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      15,
+      16,
+      19,
+      22,
+      26,
+      40
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 39.9,
+      "vw": 5.2,
+      "font": "Georgia",
+      "text": "把一份讲稿，讲成一堂课。"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.06,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fbf8f1",
+     "bodyBgHsl": {
+      "h": 42,
+      "s": 0.56,
+      "l": 0.96
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f4efe2",
+       "top": 766,
+       "hsl": {
+        "h": 43,
+        "s": 0.45,
+        "l": 0.92
+       }
+      },
+      {
+       "color": "#26241e",
+       "top": 766,
+       "hsl": {
+        "h": 45,
+        "s": 0.12,
+        "l": 0.13
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#211f1a",
+       "share": 0.61
+      },
+      {
+       "color": "#6c6860",
+       "share": 0.2
+      },
+      {
+       "color": "#e6e1d2",
+       "share": 0.06
+      },
+      {
+       "color": "#d3dae4",
+       "share": 0.04
+      },
+      {
+       "color": "#e0c274",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#1f3b63",
+      "hsl": {
+       "h": 215,
+       "s": 0.52,
+       "l": 0.25
+      },
+      "fg": "#fbf8f1"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 36,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "进入工作台",
+      "进入工作台"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 26,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 5509,
+    "margins": {
+     "left": 44,
+     "right": 68
+    },
+    "sections": [
+     {
+      "sel": "div.hp-bar",
+      "tag": "div",
+      "top": 0,
+      "height": 120,
+      "words": 6,
+      "media": 0,
+      "middle": 339,
+      "heading": null,
+      "left": 44,
+      "right": 62,
+      "textLeft": 44,
+      "textRight": 62,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "header.hp-hero",
+      "tag": "header",
+      "top": 120,
+      "height": 403,
+      "words": 5,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "把一份讲稿，",
+       "size": 40,
+       "tag": "h1"
+      },
+      "left": 44,
+      "right": 173,
+      "textLeft": 44,
+      "textRight": 173,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#demo.hp-sec",
+      "tag": "section",
+      "top": 523,
+      "height": 998,
+      "words": 46,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "讲到第 3 页，它会停",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 44,
+      "right": 64,
+      "textLeft": 44,
+      "textRight": 64,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#capabilities.hp-sec",
+      "tag": "section",
+      "top": 1537,
+      "height": 1738,
+      "words": 66,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "一堂课的四个零件",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 44,
+      "right": 135,
+      "textLeft": 44,
+      "textRight": 135,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#workflow.hp-sec",
+      "tag": "section",
+      "top": 3275,
+      "height": 906,
+      "words": 42,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "从一张照片到一堂课",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 44,
+      "right": 70,
+      "textLeft": 44,
+      "textRight": 70,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#questions.hp-sec",
+      "tag": "section",
+      "top": 4180,
+      "height": 1069,
+      "words": 28,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "常见问题",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 44,
+      "right": 97,
+      "textLeft": 44,
+      "textRight": 97,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div.hp-col",
+      "tag": "div",
+      "top": 5297,
+      "height": 212,
+      "words": 8,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "知课",
+       "size": 40,
+       "tag": "span"
+      },
+      "left": 44,
+      "right": 302,
+      "textLeft": 44,
+      "textRight": 302,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "把一份讲稿， 讲成一堂课。",
+      "size": 40,
+      "top": 243,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 44,
+      "n": 10
+     },
+     {
+      "x": 70,
+      "n": 3
+     }
+    ],
+    "leftBlocks": 13,
+    "bodySize": 19,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 8,
+   "filled": [
+    0.34,
+    0.71,
+    0.58,
+    0.73,
+    0.66,
+    0.47,
+    0.51,
+    0.48
+   ],
+   "motion": {
+    "elements": 27,
+    "css": 2,
+    "transitions": 25,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 5925,
+     "screens": 7,
+     "words": 191,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 6,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 5,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "把一份讲稿， 讲成一堂课。",
+     "words": 2,
+     "chars": 13,
+     "lines": 2,
+     "size": 36.7,
+     "vw": 9.4,
+     "font": "Georgia",
+     "weight": 700,
+     "tracking": -0.01,
+     "leading": 1.12,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.9,
+     "top": 221,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "把一份讲稿， 讲成一堂课。",
+     "words": 2,
+     "lines": 2,
+     "size": 36.7,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "把一份讲稿， 讲成一堂课。",
+      "words": 2,
+      "chars": 13,
+      "lines": 2,
+      "size": 36.7,
+      "vw": 9.4,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.01,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 221,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "讲到第 3 页，它会停",
+      "words": 3,
+      "chars": 11,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 604,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "一堂课的四个零件",
+      "words": 1,
+      "chars": 8,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 1629,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "形象与声音",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 1797,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "课件与讲稿",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2211,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "课堂互动",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2697,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "知识库问答",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 3027,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "从一张照片到一堂课",
+      "words": 1,
+      "chars": 9,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 3483,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "常见问题",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4448,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "知课",
+      "words": 1,
+      "chars": 2,
+      "lines": 1,
+      "size": 36,
+      "vw": 9.2,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": 0.02,
+      "leading": 1.1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 5689,
+      "tag": "span",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 10,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.95,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.05,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      15,
+      16,
+      18,
+      19,
+      22,
+      26,
+      36,
+      37
+     ],
+     "sizeCount": 9,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 36.7,
+      "vw": 9.4,
+      "font": "Georgia",
+      "text": "把一份讲稿，讲成一堂课。"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.06,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "一台带显卡的机器，单机跑，不用另配服务器。",
+      "above": "知课",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 18,
+      "top": 5580
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fbf8f1",
+     "bodyBgHsl": {
+      "h": 42,
+      "s": 0.56,
+      "l": 0.96
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f4efe2",
+       "top": 760,
+       "hsl": {
+        "h": 43,
+        "s": 0.45,
+        "l": 0.92
+       }
+      },
+      {
+       "color": "#26241e",
+       "top": 760,
+       "hsl": {
+        "h": 45,
+        "s": 0.12,
+        "l": 0.13
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#211f1a",
+       "share": 0.61
+      },
+      {
+       "color": "#6c6860",
+       "share": 0.2
+      },
+      {
+       "color": "#e6e1d2",
+       "share": 0.06
+      },
+      {
+       "color": "#d3dae4",
+       "share": 0.04
+      },
+      {
+       "color": "#e0c274",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#1f3b63",
+      "hsl": {
+       "h": 215,
+       "s": 0.52,
+       "l": 0.25
+      },
+      "fg": "#fbf8f1"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 36,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "进入工作台",
+      "进入工作台"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 24,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 5925,
+    "margins": {
+     "left": 20,
+     "right": 28
+    },
+    "sections": [
+     {
+      "sel": "div.hp-bar",
+      "tag": "div",
+      "top": 0,
+      "height": 120,
+      "words": 6,
+      "media": 0,
+      "middle": 39,
+      "heading": null,
+      "left": 20,
+      "right": 38,
+      "textLeft": 20,
+      "textRight": 38,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "header.hp-hero",
+      "tag": "header",
+      "top": 120,
+      "height": 400,
+      "words": 5,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "把一份讲稿，",
+       "size": 37,
+       "tag": "h1"
+      },
+      "left": 20,
+      "right": 28,
+      "textLeft": 20,
+      "textRight": 28,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#demo.hp-sec",
+      "tag": "section",
+      "top": 520,
+      "height": 1009,
+      "words": 46,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "讲到第 3 页，它会停",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 28,
+      "textLeft": 20,
+      "textRight": 28,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#capabilities.hp-sec",
+      "tag": "section",
+      "top": 1545,
+      "height": 1854,
+      "words": 66,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "一堂课的四个零件",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 21,
+      "textLeft": 20,
+      "textRight": 21,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#workflow.hp-sec",
+      "tag": "section",
+      "top": 3399,
+      "height": 965,
+      "words": 42,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "从一张照片到一堂课",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 28,
+      "textLeft": 20,
+      "textRight": 28,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#questions.hp-sec",
+      "tag": "section",
+      "top": 4364,
+      "height": 1276,
+      "words": 28,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "常见问题",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 22,
+      "textLeft": 20,
+      "textRight": 22,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div.hp-col",
+      "tag": "div",
+      "top": 5689,
+      "height": 236,
+      "words": 8,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "知课",
+       "size": 36,
+       "tag": "span"
+      },
+      "left": 20,
+      "right": 32,
+      "textLeft": 20,
+      "textRight": 32,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "把一份讲稿， 讲成一堂课。",
+      "size": 37,
+      "top": 221,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 20,
+      "n": 10
+     },
+     {
+      "x": 40,
+      "n": 3
+     }
+    ],
+    "leftBlocks": 13,
+    "bodySize": 18,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #fbf8f1, section #f4efe2).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "no-real-pictures",
+   "width": 1440,
+   "message": "Only 0 real photograph(s) or clip(s); the rest are interface fragments.",
+   "fix": "Add two or more real pictures of the customer's world from scripts/assets.mjs, not stock of people at laptops."
+  },
+  {
+   "level": "WARN",
+   "id": "off-centre",
+   "width": 1440,
+   "message": "The margins differ: 380px on the left, 398px on the right, at 1440px.",
+   "fix": "Put the navigation and the content on one pair of margins; check for padding on one side only, a scrollbar gutter, or a header on another inset than the page.",
+   "alsoAt": [
+    768
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "empty-screens",
+   "width": 1440,
+   "message": "2 of 7 desktop screens are almost empty ground (under 20% of the screen holds text, a picture or a colour field): screens 1, 6.",
+   "fix": "An empty screen is a rest only once per page. Elsewhere it means the section is underbuilt: set its content larger, give it the full information, put it on a colour field, or cut it."
+  },
+  {
+   "level": "FAIL",
+   "id": "eyebrow",
+   "width": 390,
+   "message": "1 eyebrow/kicker label(s) above headings: \"一台带显卡的机器，单机跑，不用另配服务器。\" above \"知课\"",
+   "fix": "Delete them. If the label carried real information, fold it into the headline or the supporting sentence."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\desktop-fold.jpg",
+   "pages": [
+    "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\desktop-page-01.jpg",
+    "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\desktop-page-02.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\tablet-fold.jpg",
+   "pages": [
+    "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\mobile-fold.jpg",
+   "pages": [
+    "D:\\00-Project\\KnowTalking-main\\docs\\design\\inspect-nav\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

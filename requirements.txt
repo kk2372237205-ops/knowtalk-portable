@@ -1,0 +1,74 @@
+# ─── 索引来源 ─────────────────────────────────────────────────────────────
+# torch 必须安装 CUDA 构建，而 CUDA 构建只存在于 PyTorch 官方索引（PyPI 上
+# 的 Windows torch 是 CPU-only 构建）。声明额外的索引来源后，下面带 +cu126
+# 本地版本的 torch 才能被解析到；否则会静默装成 CPU 构建、GPU 能力消失。
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+# torch 的版本与构建变体必须显式声明。此前只声明了 torch-ema 而漏了 torch 本身。
+# 安装后校验：python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+# 期望输出形如 2.14.0+cu126 True；若为 ...+cpu False，说明装错了构建变体。
+torch==2.14.0+cu126
+torch-ema
+ninja
+trimesh
+opencv-python
+tensorboardX
+numpy 
+pandas
+tqdm
+matplotlib
+PyMCubes
+rich
+dearpygui
+packaging
+scipy
+scikit-learn
+
+face_alignment
+python_speech_features
+numba
+resampy
+#pyaudio
+soundfile==0.12.1
+einops
+configargparse
+
+lpips==0.1.3
+imageio-ffmpeg
+
+transformers==4.46.2
+# 必须 >=7.3.1：7.2.8 及更早版本会被微软以 403 拒绝握手，合成全线失败。
+# 现象是「数字人不出声」，而日志里只有一行 edge_tts 的握手错误。
+edge_tts>=7.3.1
+# 驱动 Windows 系统语音（SAPI）做离线合成，见 tts/sapi.py。
+# 用途：在线 TTS 不可用时（实测 edgetts 已被微软拒绝 403）仍能让课堂发声。
+comtypes
+opencv-python-headless
+aiortc
+aiohttp_cors
+
+ffmpeg-python
+omegaconf
+diffusers
+accelerate
+
+librosa
+openai
+websocket-client
+websockets==12.0
+#gradio_client
+#azure-cognitiveservices-speech
+
+typeguard==2.13.3
+
+# 提问模式的语音转写（任务组 6）。仅 CPU 推理，无需 CUDA。
+faster-whisper==1.2.1
+
+# ⚠️ 顺序很关键：faster-whisper 会拉入 CPU 版 onnxruntime，它与 onnxruntime-gpu
+# 提供同一个 `onnxruntime` 模块，后安装者覆盖前者，导致 CUDA provider 静默消失
+# （受影响：avatars/ultralight/ 用 onnxruntime 做推理）。
+# 因此 onnxruntime-gpu 必须放在最后。若安装后 CUDA provider 丢失，执行：
+#   pip install --force-reinstall --no-deps onnxruntime-gpu==1.23.2
+# 校验：python -c "import onnxruntime; print(onnxruntime.get_available_providers())"
+# 正常应包含 'CUDAExecutionProvider'。
+onnxruntime-gpu

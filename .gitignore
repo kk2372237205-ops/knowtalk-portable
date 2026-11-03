@@ -1,0 +1,109 @@
+# ─────────────────────────────────────────────────────────────
+# KnowTalk .gitignore
+# 约定：忽略目录时使用斜杠结尾或明确的路径前缀，避免误伤同名路径；
+#      根目录只放源码/配置/文档，一次性调试产物一律不提交。
+# ─────────────────────────────────────────────────────────────
+
+# ─── Python 构建产物 ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+*.so
+
+# ─── 虚拟环境与第三方依赖目录 ────────────────────────────────
+/runtime/
+.venv-rag/
+cosyvoice_libs/
+
+# ─── 模型权重与预训练数据 ────────────────────────────────────
+/models/
+/pretrained/
+data_utils/face_tracking/3DMM/*
+data_utils/face_parsing/79999_iter.pth
+
+# ─── 运行时数据与日志 ────────────────────────────────────────
+/data/
+# 运行期设置文件含 API Key，必须忽略（/data/ 已覆盖，这里显式写清）
+/data/settings/
+/rag_service/data/
+avatars/*/data/
+*.log
+.numba_cache/
+
+# ─── 环境变量与本地工具配置（真实密钥只在本地文件中） ─────────
+.env
+.env.rag
+opencode.json
+.workbuddy/
+# 注意：.dsh/ 不再整体忽略——其中的 skills/ 是项目共用的代理技能集
+# （OpenSpec 工作流 + superpowers 代码管控），需要入库共享。
+# 若该目录日后出现运行态内容（会话、缓存），请按具体路径补忽略规则。
+.dsh/sessions/
+.dsh/cache/
+.dsh/logs/
+
+# ─── 编辑器与系统文件 ────────────────────────────────────────
+.idea/
+.vscode/
+.DS_Store
+
+# ─── 根目录一次性调试产物（不要提交） ────────────────────────
+*.bak
+/desktop_app.py.bak-*
+/PORTABLE-MANIFEST.txt
+/_*.py
+/_*.txt
+/_*.png
+/_*.npy
+/_*.pkl
+/*_out.txt
+/*.png
+/*.jpg
+
+# ─── 临时工作目录与清理回收目录 ──────────────────────────────
+tmp*/
+trial*/
+.trash_cleanup_*/
+.tmp_verify/
+workspace/log_ngp.txt
+
+# ─── 本机解释器路径（start.bat 用它钉死 python.exe，不进版本库）───
+.python-path.txt
+
+# ─── 大体积媒体素材 ──────────────────────────────────────────
+*.mp4
+
+# ─── 模型权重（体积大、可重新下载，不入库）────────────────────
+*.pth
+*.pt
+*.onnx
+*.bin
+
+# ─── 轮转/运行日志（含 .log.1/.log.2 这类非 .log 后缀）────────
+knowtalk.log*
+*.log.*
+
+# ─── 运行期日志目录（含本机环境备份，如页面文件原值）─────────
+logs/
+
+# ─── Python 完整虚拟环境（不入库，仅 .venv-rag 已在上方忽略）───
+.venv/
+
+# ─── 测试缓存 ────────────────────────────────────────────────
+.pytest_cache/
+
+# ─── RVM 抠像代码：GPL-3.0，不入库 ──────────────────────────
+# 本仓库要闭源交付，RobustVideoMatting 是 GPL-3.0（强 copyleft），
+# 放进仓库会传染整个项目。它只用于本地离线生成 alpha 素材
+# （生成物是纯像素数据，不受其许可约束），代码本身不分发。
+# 复现方法见 scripts/avatar_matte.py 顶部说明。
+utils/rvm/
+
+# ─── RVM 抠像代码：GPL-3.0，不入库 ──────────────────────────
+# 本仓库要闭源交付，RobustVideoMatting 是 GPL-3.0（强 copyleft），
+# 放进仓库会传染整个项目。它只用于本地离线生成 alpha 素材
+# （生成物是纯像素数据，不受其许可约束），代码本身不分发。
+# 复现方法见 scripts/avatar_matte.py 顶部说明。
+utils/rvm/

@@ -1,0 +1,36 @@
+知课交互数字人 —— 便携版
+=====================================
+
+【怎么跑起来】
+  双击 "启动桌面端.bat"
+  第一次会加载模型，等 1~2 分钟（画面上有提示）。
+  想看主服务日志时双击 "启动主服务.bat"。
+  不确定包全不全，先跑 "环境自检.bat"。
+
+【搬过去之前，目标机要先满足这些】
+  1. Windows 10/11 x64。
+  2. 装好 VC++ 运行库（Visual C++ Redistributable 2015-2022，x64）。
+     没有它 python.exe 会直接起不来、也没报错。
+     离线装不上就从别的机器拷 msvcp140.dll / vcruntime140.dll
+     到 runtime\ 目录下。
+  3. NVIDIA 显卡驱动已装（1050Ti 即可）。torch 是 cu126 版，
+     会自带 CUDA 运行时，不需要单独装 CUDA Toolkit。
+  4. 建议 16G 内存起步。8G 机器上 MuseTalk 会把内存吃满，
+     用小模型或降低并发。
+
+【目录说明】
+  runtime\    Python 运行环境（含 torch 2.14+cu126），别动它
+  models\     MuseTalk 模型权重 + 语音识别模型（faster-whisper-small）
+  data\       形象素材、背景图、配置
+  app.py      主服务入口
+  desktop_app.py  桌面端入口
+
+【注意】
+  整个包是"拷贝即用"的，挪到别的目录也没关系 ——
+  启动脚本会按自身位置现算路径。
+  但如果只拷其中一部分，路径就对不上了。
+
+【安全提醒】
+  data\settings\settings.json 里存着明文 API Key。
+  如果是自己在用，跟着搬过去正好省得重配；
+  要是这个包要交给别人或会外传，制作时加 --scrub-secrets 抹掉密钥。

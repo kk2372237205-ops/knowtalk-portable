@@ -1,0 +1,35 @@
+# Git LFS：模型权重与不可压缩的大体积二进制
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+
+# 其它可能出现的模型/权重格式
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.ckpt filter=lfs diff=lfs merge=lfs -text
+
+# 形象数据与 Kaldi 特征文件（可能达到数十 MB）
+*.pkl filter=lfs diff=lfs merge=lfs -text
+*.fst filter=lfs diff=lfs merge=lfs -text
+
+# 视频素材：主要由 .gitignore 的 *.mp4 阻止入库，
+# 这条规则作为纵深防御，避免有人用 git add -f 绕过忽略规则直接提交大文件。
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+
+# Windows 批处理必须保留 CRLF；源文件统一 LF，由 Git 在检出时转换。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell 脚本必须保持 LF。本仓库开启了 core.autocrlf，若不加这条，
+# 检出的 .sh 会带 CRLF，在 Linux/macOS 上会因解释器报错而无法执行。
+# 受影响的主要是 .dsh/skills/ 下随技能一起 vendoring 的脚本。
+*.sh text eol=lf
+
+# 无扩展名的 bash 脚本（以 `#!/usr/bin/env bash` 开头），`.sh` 规则匹配不到它们。
+.dsh/skills/executing-plans/scripts/task-done text eol=lf
+.dsh/skills/executing-plans/scripts/task-start text eol=lf
+.dsh/skills/subagent-driven-development/scripts/review-package text eol=lf
+.dsh/skills/subagent-driven-development/scripts/sdd-workspace text eol=lf
+.dsh/skills/subagent-driven-development/scripts/task-brief text eol=lf
+.dsh/skills/using-skills/find-skills text eol=lf
+.dsh/skills/using-skills/skill-run text eol=lf
