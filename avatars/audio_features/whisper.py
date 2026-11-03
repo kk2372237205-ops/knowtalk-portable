@@ -79,18 +79,24 @@ class WhisperASR(BaseASR):
             self.frames.append(audio_frame.data)
             audioframes.append(audio_frame)
         
-        # 保存本地引用，防止 flush_talk() 在另一个线程中清空 self.frames 导致竞态条件
-        frames = self.frames
-        if len(frames) <= self.stride_left_size + self.stride_right_size:
-            return
-        
         # 有界写入：连接断开后推理线程不再消费 output_queue，
         # 无界 put 会把 render() 主循环（run_step 的调用方）永久卡住。
+        #
+        # 必须先交付本批 PCM，再判断特征上下文是否足够。旧代码在首批音频
+        # （20fps/默认参数约 0.4 秒）直接 return，导致数字人每段开头吞掉一两个字。
+        # 推理可以晚一批开始，声音不能被悄悄丢掉。
         if self._output_drop_reporter is None:
             self._output_drop_reporter = DropReporter('asr-output', logger, every=200)
         for audioframe in audioframes:
             put_capped(self.output_queue, audioframe, timeout=FEAT_PUSH_TIMEOUT,
                        on_drop=self._output_drop_reporter)
+
+        # 保存本地引用，防止 flush_talk() 在另一个线程中清空 self.frames 导致竞态条件
+        frames = self.frames
+        if len(frames) <= self.stride_left_size + self.stride_right_size:
+            logger.debug('[音频] 首批上下文预热：已保留 %d 个 PCM 块，等待特征窗口',
+                         len(audioframes))
+            return
         
         inputs = np.concatenate(frames) # [N * chunk]
         whisper_feature = self.audio_processor.audio2feat(inputs)

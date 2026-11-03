@@ -209,6 +209,17 @@ class AudioJitterBufferTestCase(unittest.TestCase):
         self.assertEqual(track.audio_underruns, 0)
         self.assertEqual(frame.to_ndarray()[0, 0], 123)
 
+    def test_clear_audio_buffer_also_discards_preroll(self):
+        player = FakePlayer(speaking=True)
+        track = make_track(player)
+        track._audio_preroll.append((self._frame(7), {'status': 'start'}))
+        track._queue.put((self._frame(8), None))
+
+        track.clear_audio_buffer()
+
+        self.assertEqual(len(track._audio_preroll), 0)
+        self.assertTrue(track._queue.empty())
+
 
 class UnknownSpeakingStateTestCase(unittest.TestCase):
     def test_player_without_state_keeps_the_old_signal(self):

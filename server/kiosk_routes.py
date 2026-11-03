@@ -374,6 +374,12 @@ async def activate_menu(request):
     payload = await _json(request) or {}
     session = _pick_session(payload.get("sessionid"))
 
+    # 展项快捷按钮代表“切换到这个主题”，不能把新回答排在上一段朗读之后。
+    # 先清掉旧 TTS / WebRTC 缓冲，再做可能较慢的 RAG 查询；这样用户点下新按钮
+    # 时旧语音会立即停止，查询完成后只播当前选择的内容。
+    if payload.get("interrupt", True):
+        _interrupt(session)
+
     answered = await _answer_menu(menu, session, payload.get("course_id"),
                                   payload.get("top_k"), speak=True)
     answer = answered["answer"]
@@ -594,6 +600,11 @@ async def kiosk_ask(request):
     speak = payload.get("speak", True)
     verdict = _resolve(text, speaking=_is_speaking(session))
     kind = verdict["kind"]
+
+    # 浏览器语音入口传入 interrupt=true 时，最新一句覆盖旧回答；“打断词”
+    # 本身仍走下面的专用分支，避免重复清理和重复记录。
+    if payload.get("interrupt") and kind != "interrupt":
+        _interrupt(session)
 
     _STATE["last_question"] = text
     _STATE["last_source"] = kind

@@ -275,14 +275,17 @@ class PlayerStreamTrack(MediaStreamTrack):
     
     def stop(self):
         super().stop()
-        # Drain & delete remaining frames
+        self.clear_audio_buffer()
+        if self._player is not None:
+            self._player._stop(self)
+            self._player = None
+
+    def clear_audio_buffer(self):
+        """清空尚未发送的音频（含预缓冲），供“打断朗读”立即生效。"""
         self._audio_preroll.clear()
         while not self._queue.empty():
             item = self._queue.get_nowait()
             del item
-        if self._player is not None:
-            self._player._stop(self)
-            self._player = None
 
 def player_worker_thread(
     quit_event,
@@ -402,11 +405,7 @@ class HumanPlayer:
     def clear_audio_buffer(self) -> None:
         """清理尚未发送的音频，避免打断后继续播放旧 PCM。"""
         self._audio_remainder = np.empty(0, dtype=np.int16)
-        while True:
-            try:
-                self.__audio._queue.get_nowait()
-            except queue.Empty:
-                break
+        self.__audio.clear_audio_buffer()
 
     def notify(self,eventpoint):
         if self.__container is not None:
