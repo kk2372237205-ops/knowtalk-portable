@@ -1,22 +1,22 @@
 @echo off
 chcp 65001 >nul
-rem Qt 桌面端会自动复用或启动主服务；旧 Tk 启动脚本保持不变，可随时回退。
+rem Qt desktop launcher. Keep this file ASCII-only for cmd.exe compatibility.
 cd /d "%~dp0"
 
 set "PY=%~dp0runtime\python.exe"
 if not exist "%PY%" (
-  echo [错误] 未找到 runtime\python.exe，请确认便携包完整。
+  echo [ERROR] runtime\python.exe was not found.
   pause
   exit /b 1
 )
 
 > "%~dp0.python-path.txt" echo %PY%
 echo.
-echo [启动] 正在打开 KnowTalking Qt 桌面端…
-echo [日志] 主服务输出保存在 logs\desktop_server.log 和 knowtalk.log。
-echo [提示] Qt 版当前优先覆盖“开播”；旧版启动脚本仍可作为回退。
+echo [START] Opening KnowTalking Qt desktop...
+echo [LOG] Main service output: logs\desktop_server.log and knowtalk.log
+echo [NOTE] The legacy Tk launcher remains available as a fallback.
 echo.
 "%PY%" -m ui_qt.app
 echo.
-echo [已退出] Qt 桌面端已关闭。
+echo [EXIT] Qt desktop has closed.
 pause
