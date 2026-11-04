@@ -8,6 +8,8 @@
 数据目录用 monkeypatch 指到 tmp，不碰真实的 data/kiosk。
 """
 
+import asyncio
+import json
 import os
 
 import pytest
@@ -114,6 +116,53 @@ def test_wake_reply_supports_trailing_gesture(monkeypatch):
         ("您好，欢迎来到课堂", {"gesture_after": "wave_one"})
     ]
     assert session.preheated == [["wave_one"]]
+
+
+def test_strict_voice_wake_only_accepts_configured_wakeword(monkeypatch):
+    """应用端麦克风的杂音不能再落到菜单或 RAG。"""
+    routes = _routes()
+    calls = []
+
+    def match_wakeword(kind, text):
+        calls.append((kind, text))
+        return ({"word": "陈老师您好", "reply": "您好"}
+                if kind == "wake" and text == "陈老师您好" else None)
+
+    monkeypatch.setattr(routes.store, "match_wakeword", match_wakeword)
+    monkeypatch.setattr(routes.store, "match_menu",
+                        lambda _text: pytest.fail("严格语音唤醒不应匹配菜单"))
+
+    hit = routes._resolve("陈老师您好", strict_wake=True)
+    ignored = routes._resolve("窗外有风声", strict_wake=True)
+
+    assert hit["kind"] == "wake"
+    assert ignored["kind"] == "ignored"
+    assert calls == [("wake", "陈老师您好"), ("wake", "窗外有风声")]
+
+
+def test_strict_voice_wake_unmatched_does_not_interrupt_or_query_rag(monkeypatch):
+    """未命中词条要静默返回，不能打断当前播放，也不能朗读 RAG 兜底话术。"""
+    routes = _routes()
+
+    async def fake_json(_request):
+        return {"sessionid": "session", "text": "环境杂音", "speak": True,
+                "interrupt": True, "voice_wake_only": True}
+
+    monkeypatch.setattr(routes, "_json", fake_json)
+    monkeypatch.setattr(routes, "_pick_session", lambda _sessionid: FakeSession())
+    monkeypatch.setattr(routes, "_is_speaking", lambda _session: True)
+    monkeypatch.setattr(routes.store, "match_wakeword", lambda _kind, _text: None)
+    monkeypatch.setattr(routes, "_interrupt",
+                        lambda _session: pytest.fail("未命中杂音不应打断朗读"))
+
+    async def fail_rag(*_args, **_kwargs):
+        pytest.fail("未命中杂音不应查询知识库")
+
+    monkeypatch.setattr(routes, "_rag_answer", fail_rag)
+    response = asyncio.run(routes.kiosk_ask(object()))
+    payload = json.loads(response.text)
+    assert payload["data"]["kind"] == "ignored"
+    assert payload["data"]["matched"] is False
 
 
 def test_play_gesture_repeat_flag_passed():

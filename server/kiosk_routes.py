@@ -578,7 +578,7 @@ async def kiosk_state(request):
 
 # ─── 一句话进来的统一处置 ────────────────────────────────────────
 
-def _resolve(text, speaking=False):
+def _resolve(text, speaking=False, strict_wake=False):
     """判定一句话该怎么处置，不产生副作用。返回 dict。
 
     顺序是刻意的：
@@ -586,6 +586,11 @@ def _resolve(text, speaking=False):
     2. 菜单 —— 展项里菜单是最高频的操作，比唤醒词更具体；
     3. 唤醒词 —— 命中就播预设应答语；
     4. 都没有 → 交给知识库。
+
+    ``strict_wake`` 用于应用端的持续语音唤醒。浏览器的原生语音识别会把
+    环境声、旁人说话，甚至数字人外放的声音都转成文字；在这一模式中，只有
+    已配置且已启用的唤醒词/打断词能继续处理，其他转写一律静默忽略，绝不能
+    误送到知识库并让数字人抢答。
     """
     result = {"kind": "rag", "word": "", "reply": "", "menu": None}
     if speaking:
@@ -594,6 +599,14 @@ def _resolve(text, speaking=False):
             result.update(kind="interrupt", word=hit.get("word", ""),
                           reply=hit.get("reply", ""))
             return result
+    if strict_wake:
+        hit = store.match_wakeword("wake", text)
+        if hit:
+            result.update(kind="wake", word=hit.get("word", ""),
+                          reply=hit.get("reply", ""))
+            return result
+        result["kind"] = "ignored"
+        return result
     menu = store.match_menu(text)
     if menu:
         result.update(kind="menu", menu=menu)
@@ -626,16 +639,23 @@ async def kiosk_ask(request):
 
     session = _pick_session(payload.get("sessionid"))
     speak = payload.get("speak", True)
-    verdict = _resolve(text, speaking=_is_speaking(session))
+    voice_wake_only = bool(payload.get("voice_wake_only"))
+    verdict = _resolve(text, speaking=_is_speaking(session),
+                       strict_wake=voice_wake_only)
     kind = verdict["kind"]
 
     # 浏览器语音入口传入 interrupt=true 时，最新一句覆盖旧回答；“打断词”
     # 本身仍走下面的专用分支，避免重复清理和重复记录。
-    if payload.get("interrupt") and kind != "interrupt":
+    if payload.get("interrupt") and kind not in ("interrupt", "ignored"):
         _interrupt(session)
 
     _STATE["last_question"] = text
     _STATE["last_source"] = kind
+
+    if kind == "ignored":
+        logger.info("[语音唤醒] 未命中已配置词条，静默忽略：%s", text)
+        return json_ok(data={"kind": "ignored", "matched": False, "answer": "",
+                             "detail": "未命中已启用的唤醒词或打断词"})
 
     if kind == "interrupt":
         _interrupt(session)

@@ -16,6 +16,10 @@
     subtitlePolling: false,
     voiceRecognition: null,
     voiceWakeEnabled: false,
+    voiceFinalParts: [],
+    voiceFlushTimer: null,
+    voiceLastSubmitted: "",
+    voiceLastSubmittedAt: 0,
     proximity: null,
   };
 
@@ -372,6 +376,9 @@
 
   function stopVoiceWake() {
     state.voiceWakeEnabled = false;
+    if (state.voiceFlushTimer) window.clearTimeout(state.voiceFlushTimer);
+    state.voiceFlushTimer = null;
+    state.voiceFinalParts = [];
     const recognition = state.voiceRecognition;
     state.voiceRecognition = null;
     if (recognition) {
@@ -383,16 +390,44 @@
   async function handleVoiceTranscript(text) {
     const phrase = String(text || "").trim();
     if (!phrase || !state.sessionId) return;
+    const now = Date.now();
+    if (phrase === state.voiceLastSubmitted && now - state.voiceLastSubmittedAt < 1200) return;
+    state.voiceLastSubmitted = phrase;
+    state.voiceLastSubmittedAt = now;
     ui.menuMessage.textContent = "识别到：“" + phrase + "”，正在处理…";
     try {
       const result = await api("/api/kiosk/ask", {
         method: "POST",
-        body: JSON.stringify({ sessionid: state.sessionId, text: phrase, speak: true, interrupt: true }),
+        body: JSON.stringify({
+          sessionid: state.sessionId, text: phrase, speak: true, interrupt: true,
+          voice_wake_only: true,
+        }),
       });
-      ui.menuMessage.textContent = result?.kind === "interrupt" ? "已打断朗读。" : "正在准备回答…";
+      if (result?.kind === "interrupt") ui.menuMessage.textContent = "已打断朗读。";
+      else if (result?.kind === "wake") ui.menuMessage.textContent = "已命中唤醒词，正在回应…";
+      else if (result?.kind === "ignored") ui.menuMessage.textContent = "未命中已配置的唤醒词/打断词，已忽略。";
+      else ui.menuMessage.textContent = "未命中已配置的唤醒词/打断词，已忽略。";
     } catch (error) {
       ui.menuMessage.textContent = "语音请求失败：" + error.message;
     }
+  }
+
+  function flushVoiceTranscript() {
+    if (state.voiceFlushTimer) window.clearTimeout(state.voiceFlushTimer);
+    state.voiceFlushTimer = null;
+    const phrase = state.voiceFinalParts.join("").trim();
+    state.voiceFinalParts = [];
+    if (phrase) handleVoiceTranscript(phrase);
+  }
+
+  function queueVoiceTranscript(text) {
+    const phrase = String(text || "").trim();
+    if (!phrase) return;
+    state.voiceFinalParts.push(phrase);
+    if (state.voiceFlushTimer) window.clearTimeout(state.voiceFlushTimer);
+    // 原生识别有时会把一整句切成两三个 final 片段；等待一个很短的静音窗口
+    // 再合并提交，避免「陈老师」和「您好」分别识别后都无法命中完整唤醒词。
+    state.voiceFlushTimer = window.setTimeout(flushVoiceTranscript, 550);
   }
 
   function startVoiceWake() {
@@ -402,24 +437,25 @@
     const recognition = new Recognition();
     recognition.lang = "zh-CN";
     recognition.continuous = true;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.onresult = (event) => {
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        if (event.results[index].isFinal) handleVoiceTranscript(event.results[index][0].transcript);
+        if (event.results[index].isFinal) queueVoiceTranscript(event.results[index][0].transcript);
       }
     };
     recognition.onerror = (event) => {
-      if (event.error !== "aborted") setDetail("语音唤醒异常：" + event.error);
+      if (event.error !== "aborted" && event.error !== "no-speech") setDetail("语音唤醒异常：" + event.error);
     };
     recognition.onend = () => {
       if (!state.voiceWakeEnabled || !state.sessionId || state.voiceRecognition !== recognition) return;
-      window.setTimeout(() => { try { recognition.start(); } catch (_error) { /* 浏览器正在重启识别 */ } }, 250);
+      flushVoiceTranscript();
+      window.setTimeout(() => { try { recognition.start(); } catch (_error) { /* 浏览器正在重启识别 */ } }, 180);
     };
     state.voiceRecognition = recognition;
     state.voiceWakeEnabled = true;
     recognition.start();
     ui.voiceWake.textContent = "关闭语音唤醒";
-    ui.menuMessage.textContent = "语音唤醒已开启，请说唤醒词或直接提问。";
+    ui.menuMessage.textContent = "语音唤醒已开启：只会响应已配置的唤醒词或打断词。";
   }
 
   function waitForIceGathering(pc, timeoutMs = 8000) {
